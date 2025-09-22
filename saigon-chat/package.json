@@ -1,0 +1,16 @@
+{
+  "name": "saigon-chat",
+  "version": "1.0.0",
+  "description": "chatroom for tq and her friends discussing a potential grad trip to vietnam",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1"
+  }
+}

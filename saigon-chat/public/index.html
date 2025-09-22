@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+ 
+  
+  <link rel="manifest" href="manifest.json" />
+
+  <title>Saigon Travels Chatroom</title>
+
+  <link rel="stylesheet" type="text/css" href="style.css">
+
+    <!-- include socket.io library: -->
+  <script src="/socket.io/socket.io.js"></script> 
+
+</head>
+
+<body>
+
+  <div class="main-wrapper">
+    <header id="chatHeader">
+      <h1>vietnam grad trip</h1>
+    </header>
+
+
+    <div id="nameWrapper">
+        <p>join the trip & enter your name</p>
+        <input id="nameInput" type="text" placeholder="traveler">
+    </div>
+
+    <div id="threadWrapper">
+        <ul id="chatList">
+          <!-- actual conversation i had with my friends back home the other day -->
+            <li><span class="who">jam:</span><span class="words">hey guys we should go to vietnam together</span></li>
+            <li><span class="who">kieucumber:</span><span class="words">tq goes a lot, she's been there during the summer and fall</span></li>
+            <li><span class="who">katngx:</span><span class="words">omg i've been meaning to ask about a grad trip to vietnam</span></li>
+            <li><span class="who">jam:</span><span class="words">where is tq</span></li>
+            <li><span class="who">colton:</span><span class="words">fr we need her input</span></li>
+            <li><span class="who">jam:</span><span class="words">is it better if we go during the summer?</span></li>
+            <li><span class="who">katngx:</span><span class="words">the weather is basically the same all year long</span></li>
+            <li><span class="who">lynnie:</span><span class="words">the plane tickets are gonna be cheaper if we buy it months ahead</span></li>
+            <li><span class="who">lynnie:</span><span class="words">i can take a look online</span></li>
+            <li><span class="who">kieucumber:</span><span class="words">how long should we go for</span></li>
+            <li><span class="who">jam:</span><span class="words">i think at least 3 weeks is worth it</span></li>
+            <li><span class="who">colton:</span><span class="words">where are we gonna stay tho</span></li>
+            <li><span class="who">katngx:</span><span class="words">with tq and her family</span></li>
+            <li><span class="who">katngx:</span><span class="words">she keeps bugging us about going together and staying at her place</span></li>
+            <li><span class="who">tq:</span><span class="words"></span>good morning beautiful people</li>
+            <li><span class="who">tq:</span><span class="words">lets go to vietnam</span></li>
+            <li><span class="who">tq:</span><span class="words">ygs can stay with me</span></li>
+            <li><span class="who">kieucumber:</span><span class="words">what should we do there</span></li>
+            <li><span class="who">kieucumber:</span><span class="words">you've been there the most</span></li>
+            <li><span class="who">tq:</span><span class="words">literally go shopping, sightseeing, and stuffing our faces</span></li>
+            <li><span class="who">tq:</span><span class="words">cafe hopping is really nice too</span></li>
+            <li><span class="who">tq:</span><span class="words">i can drive the moped there but only 1/2 people at a time</span></li>
+            <li><span class="who">jam:</span><span class="words">we can just call a taxi or grab bikes too</span></li>
+            <li><span class="who">katngx:</span><span class="words">whats the shopping center u kept raving about tq</span></li>
+            <li><span class="who">tq:</span><span class="words">the new playground</span></li>
+            <li><span class="who">kieucumber:</span><span class="words">dude she literally went broke in vn</span></li>
+            <li><span class="who">lynnie:</span><span class="words">we all boutta be broke too</span></li>
+            <li><span class="who">kieucumber:</span><span class="words">should we just stay in saigon or should we go to other cities too</span></li>
+            <li><span class="who">colton:</span><span class="words">i wanna go explore other cities too</span></li>
+            <li><span class="who">colton:</span><span class="words">maybe da nang, ha noi, and nha trang</span></li>
+            <li><span class="who">tq:</span><span class="words">we should go if its cheap</span></li>
+            <li><span class="who">jam:</span><span class="words">we are gonna get so fat</span></li>
+            <li><span class="who">kieucumber:</span><span class="words">i wanna eat a lot of seafood cause its so good there</span></li>
+            <li><span class="who">katngx:</span><span class="words">EVERYONEE SAVE UP NOW!!!</span></li>
+            <li><span class="who">katngx:</span><span class="words">and we gotta bring empty suitcases</span></li>
+            <li><span class="who">kieucumber:</span><span class="words">the motherland gonna rob us</span></li>
+            <li><span class="who">jam:</span><span class="words">this trip needs to happen</span></li>
+            <li><span class="who">katngx:</span><span class="words">IT WILL HAPPEN!!!</span></li>
+            <li><span class="who">lynnie:</span><span class="words">the plane ticket prices for round trip from lax to sgn aren't that bad rn</span></li>
+            <li><span class="who">lynnie:</span><span class="words">if we are forsure going then we should book it soon</span></li>
+            <li><span class="who">jam:</span><span class="words">we all graduate at different times tho</span></li>
+            <li><span class="who">kieucumber:</span><span class="words">i think late june/early july will work for all of us</span></li>
+            <li><span class="who">katngx:</span><span class="words">we gotta start planning now</span></li>
+            <li><span class="who">katngx:</span><span class="words">AND CHECK YOUR BANK ACCS PLS</span></li>
+            <li><span class="who">tq:</span><span class="words">guys start looking online for stuff ygs wanna do and send it here</span></li>
+            <li><span class="who">tq:</span><span class="words">i can make an itinerary after we get the plane tickets</span></li>
+            <li><span class="who">lynnie:</span><span class="words">we should buy the plane tickets by the end of october</span></li>
+
+
+
+
+        </ul>
+    </div>
+
+    <!-- emojis -->
+    <div id="stickerBar">
+      <span class="sticker">🍜</span>
+      <span class="sticker">☕</span>
+      <span class="sticker">🏍️</span>
+      <span class="sticker">🛍️</span>
+      <span class="sticker">🌆</span>
+      <span class="sticker">🍻</span>
+    </div>
+
+
+    <div>
+        <form id="chatForm">
+            <input id="newMessage" placeholder="type your message..." autocomplete="off" />
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+
+  </div>
+
+
+  <script src="script.js"></script>
+</body>
+
+</html>
