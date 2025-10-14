@@ -33,7 +33,7 @@ function newMessagesSubmitted(event){
 
 
 
-// listen for new msgs from server
+// listen for new msgs from servyuer
 socket.on("newMessage", function(data){
     console.log("received from server:", data);
     appendMessage(data.sender, data.message);

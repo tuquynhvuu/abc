@@ -1,0 +1,24 @@
+{
+  "name": "Bloom Prototype",
+  "short_name": "Bloom",
+  "description": "A collective sound-reactive bloom that grows with each connected user.",
+  "start_url": ".",
+  "icons": [
+    {
+      "src": "assets/512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "assets/192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "display": "standalone",
+  "scope": ".",
+  "prefer_related_applications": false
+}
