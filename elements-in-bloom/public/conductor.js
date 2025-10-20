@@ -935,7 +935,7 @@ function updateInfoText() {
   
   // Update connection status
   const connectionStatus = document.getElementById('connectionStatus');
-  connectionStatus.textContent = '● Connected';
+  connectionStatus.textContent = 'Connected';
   connectionStatus.className = 'connection-status';
 }
 
