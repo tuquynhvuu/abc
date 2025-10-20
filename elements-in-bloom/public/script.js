@@ -47,7 +47,7 @@ function plantSeed() {
     // send to server 
     socket.emit('plantSeed', newSeed);
     lastSeedTime = now;
-    console.log('Life user planted seed at:', me.x, me.y);
+    // console.log('Life user planted seed at:', me.x, me.y);
   }
 }
 
@@ -91,7 +91,7 @@ socket.on('assignRole', (data) => {
     roleInstruction.textContent = 'blow away the sprouts!';
   }
   
-  console.log('Assigned role:', me.role);
+  // console.log('Assigned role:', me.role);
 });
 
 // player pos updates

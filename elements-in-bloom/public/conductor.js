@@ -14,7 +14,7 @@ let ctx = canvas.getContext("2d");
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  console.log('Canvas resized to:', canvas.width, 'x', canvas.height);
+//   console.log('Canvas resized to:', canvas.width, 'x', canvas.height);
 }
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
@@ -37,11 +37,11 @@ document.addEventListener('click', function() {
   sproutSound.play().then(() => {
     sproutSound.pause();
     sproutSound.currentTime = 0;
-    console.log('🔊 Audio enabled - click worked!');
+    // console.log('Audio enabled - click worked!');
   }).catch(e => console.log('Audio enable failed:', e));
 }, { once: true }); 
 
-console.log('Sound effects loaded');
+// console.log('Sound effects loaded');
 
 let allSeeds = [];
 let allParticles = [];
@@ -53,7 +53,7 @@ let backgroundHue = 200; // starting hue
 let backgroundSaturation = 20; // Starting saturation 
 let backgroundLightness = 15; // starting lightness
 
-console.log('Conductor script loaded');
+// console.log('Conductor script loaded');
 
 // update sprout count and background vibrancy
 function updateSproutCount() {
@@ -76,18 +76,18 @@ function updateBackgroundVibrancy() {
   // increase lightness
   backgroundLightness = 10 + (vibrancyRatio * 10); // 10% to 20%
   
-  console.log(`Background: ${activeSproutsCount} sprouts, Hue: ${backgroundHue}, Sat: ${backgroundSaturation}%`);
+//   console.log(`Background: ${activeSproutsCount} sprouts, Hue: ${backgroundHue}, Sat: ${backgroundSaturation}%`);
 }
 
 // role assignment from server
 socket.on('assignRole', (data) => {
-  console.log('Conductor role assigned:', data);
+//   console.log('Conductor role assigned:', data);
 //   infoText.textContent = "CONDUCTOR VIEW - Connected to server";
 });
 
 // init global state from server
 socket.on('globalState', (globalData) => {
-  console.log('Conductor received global state:', globalData);
+//   console.log('Conductor received global state:', globalData);
   allSeeds = globalData.seeds || [];
   allParticles = globalData.particles || [];
   allPlayers = globalData.players || {};
@@ -104,18 +104,18 @@ socket.on('playerUpdate', (players) => {
 
 // seed events
 socket.on('seedAdded', (newSeed) => {
-  console.log('🎯 CONDUCTOR: Seed added', newSeed);
+//   console.log('CONDUCTOR: Seed added', newSeed);
   allSeeds.push(newSeed);
   updateInfoText();
 });
 
 socket.on('seedTransformed', (updatedSeed) => {
-  console.log('🎯 CONDUCTOR: Seed transformed', updatedSeed);
+//   console.log('CONDUCTOR: Seed transformed', updatedSeed);
   const index = allSeeds.findIndex(s => s.id === updatedSeed.id);
   if (index !== -1) {
     allSeeds[index] = updatedSeed;
   } else {
-    console.log('Seed not found, adding it:', updatedSeed.id);
+    // console.log('Seed not found, adding it:', updatedSeed.id);
     allSeeds.push(updatedSeed);
   }
   updateSproutCount(); 
@@ -123,7 +123,7 @@ socket.on('seedTransformed', (updatedSeed) => {
 
   // play sprout sound when seed transforms to sprout
   if (updatedSeed.state === 'sprout') {
-    console.log('🔊 Playing sprout sound');
+    // console.log('Playing sprout sound');
     sproutSound.currentTime = 0; 
     sproutSound.play().catch(e => console.log('Audio play failed:', e));
   }
@@ -131,14 +131,14 @@ socket.on('seedTransformed', (updatedSeed) => {
 
 // debug: check if particle events are being received
 socket.on('particlesAdded', (newParticles) => {
-  console.log('CONDUCTOR: Particles added', newParticles.length);
-  console.log('First particle data:', newParticles[0]);
+//   console.log('CONDUCTOR: Particles added', newParticles.length);
+//   console.log('First particle data:', newParticles[0]);
   allParticles = allParticles.concat(newParticles);
   updateInfoText();
 
   // play wind sound when particles are created 
   if (newParticles.length > 0) {
-    console.log('Playing wind sound for particles');
+    // console.log('Playing wind sound for particles');
     windSound.currentTime = 0;
     windSound.play().catch(e => console.log('Audio play failed:', e));
   }
@@ -149,23 +149,23 @@ socket.on('particlesUpdated', (updatedParticles) => {
 });
 
 socket.on('sproutRemoved', (seedId) => {
-  console.log('CONDUCTOR: Sprout removed', seedId);
+//   console.log('CONDUCTOR: Sprout removed', seedId);
   const beforeCount = allSeeds.length;
   allSeeds = allSeeds.filter(s => s.id !== seedId);
   const afterCount = allSeeds.length;
-  console.log(`Sprout removal: ${beforeCount} -> ${afterCount} seeds`);
+//   console.log(`Sprout removal: ${beforeCount} -> ${afterCount} seeds`);
   updateSproutCount(); 
   updateInfoText();
 
   // play wind sound when sprout is removed
-  console.log('🔊 Playing wind sound');
+//   console.log('Playing wind sound');
   windSound.currentTime = 0; 
   windSound.play().catch(e => console.log('Audio play failed:', e));
 });
 
 // connection events
 socket.on('connect', () => {
-  console.log('Conductor connected to server');
+//   console.log('Conductor connected to server');
 //   infoText.textContent = "CONDUCTOR VIEW - Connected to server";
   const connectionStatus = document.getElementById('connectionStatus');
   connectionStatus.textContent = '● Connected';
@@ -173,7 +173,7 @@ socket.on('connect', () => {
 });
 
 socket.on('disconnect', () => {
-  console.log('Conductor disconnected from server');
+//   console.log('Conductor disconnected from server');
 //   infoText.textContent = "CONDUCTOR VIEW - Disconnected from server";
   const connectionStatus = document.getElementById('connectionStatus');
   connectionStatus.textContent = '● Disconnected';
@@ -182,7 +182,7 @@ socket.on('disconnect', () => {
 });
 
 socket.on('connect_error', (error) => {
-  console.error('Conductor connection error:', error);
+//   console.error('Conductor connection error:', error);
 //   infoText.textContent = "CONDUCTOR VIEW - Connection error";
   const connectionStatus = document.getElementById('connectionStatus');
   connectionStatus.textContent = '● Connection Error';
@@ -193,11 +193,11 @@ socket.on('connect_error', (error) => {
 function debugDrawing() {
   const seedsCount = allSeeds.filter(s => s.state === 'seed').length;
   const sproutsCount = allSeeds.filter(s => s.state === 'sprout').length;
-  console.log(`DRAWING DEBUG - Seeds: ${seedsCount}, Sprouts: ${sproutsCount}, Particles: ${allParticles.length}`);
+//   console.log(`DRAWING DEBUG - Seeds: ${seedsCount}, Sprouts: ${sproutsCount}, Particles: ${allParticles.length}`);
   
   allSeeds.forEach(seed => {
     if (seed.state === 'sprout') {
-      console.log(`Sprout ${seed.id}: growth=${seed.growthProgress}, x=${seed.x}, y=${seed.y}`);
+    //   console.log(`Sprout ${seed.id}: growth=${seed.growthProgress}, x=${seed.x}, y=${seed.y}`);
     }
   });
 }
@@ -713,7 +713,7 @@ function drawWindParticles() {
   
   // debug: log when particles are actively animating
   if (allParticles.length > 0 && Math.random() < 0.05) {
-    console.log(`🎨 Animating ${particlesDrawn} particles`);
+    // console.log(`Animating ${particlesDrawn} particles`);
   }
 }
 
@@ -1016,7 +1016,7 @@ function drawBackground() {
   
   // debug log to see the color changes
   if (Math.random() < 0.01) {
-    console.log(`Background: ${activeSproutsCount} sprouts → HSL(${Math.round(currentHue)}, ${Math.round(currentSaturation)}%, ${Math.round(currentLightness)}%)`);
+    // console.log(`Background: ${activeSproutsCount} sprouts → HSL(${Math.round(currentHue)}, ${Math.round(currentSaturation)}%, ${Math.round(currentLightness)}%)`);
   }
 }
 
@@ -1027,7 +1027,7 @@ function draw() {
   // check particle state occasionally
   if (Math.random() < 0.02 && allParticles.length > 0) {
     const firstParticle = allParticles[0];
-    console.log('🔍 PARTICLE DEBUG:', {
+    console.log('PARTICLE DEBUG:', {
       count: allParticles.length,
       firstParticle: {
         x: firstParticle.x,
@@ -1050,6 +1050,6 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
-console.log('Starting conductor animation loop');
+// console.log('Starting conductor animation loop');
 setInterval(debugDrawing, 8000); // debug every 8 seconds
 draw();
