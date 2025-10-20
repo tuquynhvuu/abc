@@ -1,6 +1,9 @@
-const prefix = location.pathname.replace(/\/$/, '');
-const socket = io({ path: prefix + '/socket.io' });
+// const prefix = location.pathname.replace(/\/$/, '');
+// const socket = io({ path: prefix + '/socket.io' });
 // const socket = io();
+
+const basePath = location.pathname.split('/').slice(0, -1).join('/');
+const socket = io({ path: basePath + '/socket.io' });
 
 // canvas and context for drawing
 let canvas = document.getElementById("bloomCanvas");
