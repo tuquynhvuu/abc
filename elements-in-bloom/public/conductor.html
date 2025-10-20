@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elements in Bloom - Conductor View</title>
+    <link rel="stylesheet" type="text/css" href="conductor-style.css">
+</head>
+<body>
+    <canvas id="bloomCanvas"></canvas>
+    
+    <div class="conductor-header">
+        <div class="title-section">
+            <h1 class="main-title">elements in bloom</h1>
+            <p class="subtitle">conductor view - orchestrating the ecosystem</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card stat-life">
+                <span class="stat-value" id="lifeCount">0</span>
+                <span class="stat-label">life Players</span>
+            </div>
+            <div class="stat-card stat-light">
+                <span class="stat-value" id="lightCount">0</span>
+                <span class="stat-label">light Players</span>
+            </div>
+            <div class="stat-card stat-wind">
+                <span class="stat-value" id="windCount">0</span>
+                <span class="stat-label">wind Players</span>
+            </div>
+            <div class="stat-card stat-seeds">
+                <span class="stat-value" id="seedCount">0</span>
+                <span class="stat-label">seeds</span>
+            </div>
+            <div class="stat-card stat-sprouts">
+                <span class="stat-value" id="sproutCount">0</span>
+                <span class="stat-label">sprouts</span>
+            </div>
+            <div class="stat-card stat-particles">
+                <span class="stat-value" id="particleCount">0</span>
+                <span class="stat-label">particles</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="connection-status" id="connectionStatus">
+        Connected
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // query parameter to identify as conductor
+        const socket = io({ query: { role: 'conductor' } });
+    </script>
+    <script src="conductor.js"></script>
+</body>
+</html>
