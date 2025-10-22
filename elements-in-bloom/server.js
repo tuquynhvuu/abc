@@ -49,7 +49,7 @@ function checkInteractions() {
       if (seed.state === 'seed' && !recentlyTransformed.has(seed.id)) {
         const dist = Math.hypot(seed.x - light.x, seed.y - light.y);
         if (dist < 0.1) {
-          console.log('💡 Light transforming seed to sprout:', seed.id);
+          // console.log('Light transforming seed to sprout:', seed.id);
           
           // mark as recently transformed
           recentlyTransformed.add(seed.id);
@@ -87,7 +87,7 @@ function checkInteractions() {
           const dist = Math.hypot(sproutMiddleX - wind.x, sproutMiddleY - wind.y);
           
           if (dist < 0.1) {
-            console.log('💨 WIND EXPLOSION: Dispersing sprout into SMALL, SLOW particles:', seed.id);
+            // console.log('WIND EXPLOSION: Dispersing sprout into SMALL, SLOW particles:', seed.id);
             
             // small slow particles
             const newParticles = [];
@@ -113,7 +113,7 @@ function checkInteractions() {
               });
             }
             
-            console.log(`💨 Created ${newParticles.length} small, slow particles`);
+            // console.log(`Created ${newParticles.length} small, slow particles`);
             
             // remove sprout and add particles
             const removedSeedId = seed.id;
@@ -124,7 +124,7 @@ function checkInteractions() {
             io.emit('sproutRemoved', removedSeedId);
             io.emit('particlesAdded', newParticles);
             io.emit('interaction', 'life-wind');
-            console.log('💨 Wind explosion complete!');
+            // console.log('Wind explosion complete!');
             break;
           }
         }
@@ -154,7 +154,7 @@ io.on('connection', (socket) => {
   
   // send current global state to conductor
   if (role === 'conductor') {
-    console.log('Sending global state to conductor');
+    // console.log('Sending global state to conductor');
     socket.emit('globalState', { 
       seeds: allSeeds, 
       particles: allWindParticles,
@@ -184,7 +184,7 @@ io.on('connection', (socket) => {
       };
       allSeeds.push(newSeed);
       
-      console.log('Seed planted. Total seeds:', allSeeds.length);
+      // console.log('Seed planted. Total seeds:', allSeeds.length);
       
       // broadcast to conductor
       io.emit('seedAdded', newSeed);
@@ -214,7 +214,7 @@ allSeeds.forEach(seed => {
     
     // log when a sprout becomes wind ready
     if (oldProgress < 0.95 && seed.growthProgress >= 0.95) {
-      console.log(`Sprout ${seed.id} is now WIND-READY!`);
+      // console.log(`Sprout ${seed.id} is now WIND-READY!`);
     }
     
     if (Math.floor(seed.growthProgress * 10) !== Math.floor(oldProgress * 10)) {
@@ -272,12 +272,12 @@ setInterval(() => {
   if (allWindParticles.length > 0) {
     const now = Date.now();
     if (now - lastDebugTime > 3000) { 
-      console.log(`🌪️ PARTICLE MOVEMENT DEBUG:`);
-      console.log(`   Total particles: ${allWindParticles.length}`);
+      // console.log(`PARTICLE MOVEMENT DEBUG:`);
+      // console.log(`   Total particles: ${allWindParticles.length}`);
       if (allWindParticles.length > 0) {
         const p = allWindParticles[0];
-        console.log(`   Sample particle: x=${p.x.toFixed(3)}, y=${p.y.toFixed(3)}, vx=${p.vx.toFixed(4)}, vy=${p.vy.toFixed(4)}`);
-        console.log(`   Movement: ${(p.vx * 100).toFixed(1)}% leftward per frame`);
+        // console.log(`   Sample particle: x=${p.x.toFixed(3)}, y=${p.y.toFixed(3)}, vx=${p.vx.toFixed(4)}, vy=${p.vy.toFixed(4)}`);
+        // console.log(`   Movement: ${(p.vx * 100).toFixed(1)}% leftward per frame`);
       }
       lastDebugTime = now;
     }
