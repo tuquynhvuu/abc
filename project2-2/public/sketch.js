@@ -212,83 +212,6 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-// function draw() {
-//   clear();
-
-//   if (!mapInit && GPS_GRANTED && currentLongitude != 0) {
-//     mappa_options.lat = currentLatitude;
-//     mappa_options.lng = currentLongitude;
-
-//     myMap = mappa.tileMap(mappa_options);
-//     myMap.overlay(canvas);
-//     myMap.onChange(updateMapContent);
-//     mapInit = true;
-//   }
-
-//   if (mapInit) {
-//     // me.update();
-//     // me.display();
-
-// for (let id in allPlayers) {
-//   const player = allPlayers[id];
-//   if (player.lat && player.lon) {
-//     let pos = myMap.latLngToPixel(player.lat, player.lon);
-//     fill(player.team);
-//     stroke("black");
-//     strokeWeight(2);
-//     circle(pos.x, pos.y, 20);
-
-//     // Show name only if teammate
-//     if (teammates[id]) {
-//       noStroke();
-//       fill("black");
-//       textAlign(CENTER);
-//       text(player.name, pos.x, pos.y - 15);
-//     }
-//   }
-// }
-
-
-//     for (let block of blocks) {
-//       checkBlockTrigger(block);
-//       drawBlock(block);
-//       drawTrigger(block); // visualize trigger point & radius
-//     }
-//   }
-
-
-// }
-
-// function drawTrigger(block){
-//   if (!mapInit || !myMap) return;
-//  // Convert trigger lat/lon to pixel coordinates
-//   let triggerPos = myMap.latLngToPixel(block.trigger.lat, block.trigger.lon);
-
-//   push();
-//   noFill();
-//   stroke(0, 255, 0, 150); // green for radius
-//   strokeWeight(2);
-
-//   // Convert trigger radius (lat/lon degrees) to pixels
-//   let radiusPixels = mapDistanceToPixels(block.triggerRadius, block.trigger.lat);
-//   circle(triggerPos.x, triggerPos.y, radiusPixels * 2); // diameter = radius * 2
-
-//   // Draw trigger point itself
-//   fill(0, 255, 0);
-//   noStroke();
-//   circle(triggerPos.x, triggerPos.y, 8);
-//   pop();
-
-// }
-
-// ========== HELPER TO CONVERT LAT/LON DISTANCE TO PIXELS ==========
-function mapDistanceToPixels(distanceLatLon, lat) {
-  // Convert lat distance to pixels (approximate)
-  let latPixel = myMap.latLngToPixel(lat, 0);
-  let latPixelPlus = myMap.latLngToPixel(lat + distanceLatLon, 0);
-  return abs(latPixelPlus.y - latPixel.y);
-}
-
 function draw() {
   clear();
 
@@ -302,66 +225,70 @@ function draw() {
     mapInit = true;
   }
 
-  if (!mapInit) return;
+  if (mapInit) {
+    // me.update();
+    // me.display();
 
-  // --- draw all blocks (territories) ---
-  for (let block of blocks) {
-    drawBlock(block);
-    drawTrigger(block);
-  }
-
-  // --- draw all players ---
-  for (let id in allPlayers) {
-    const player = allPlayers[id];
-    if (!player.lat || !player.lon) continue;
+for (let id in allPlayers) {
+  const player = allPlayers[id];
+  if (player.lat && player.lon) {
     let pos = myMap.latLngToPixel(player.lat, player.lon);
-
-    push();
-    strokeWeight(player.team === teamColor ? 3 : 1);
-    stroke(255);
     fill(player.team);
-    let sz = player.team === teamColor ? 20 : 14;
-    circle(pos.x, pos.y, sz);
+    stroke("black");
+    strokeWeight(2);
+    circle(pos.x, pos.y, 20);
 
-    // Name labels for teammates only
-    if (player.team === teamColor) {
+    // Show name only if teammate
+    if (teammates[id]) {
       noStroke();
-      fill(0);
+      fill("black");
       textAlign(CENTER);
-      textSize(12);
       text(player.name, pos.x, pos.y - 15);
     }
-    pop();
   }
 }
 
 
-// ======== TRIGGER VISUALS ========
-function drawTrigger(block) {
-  if (!mapInit || !myMap) return;
+    for (let block of blocks) {
+      checkBlockTrigger(block);
+      drawBlock(block);
+      drawTrigger(block); // visualize trigger point & radius
+    }
+  }
 
+
+}
+
+function drawTrigger(block){
+  if (!mapInit || !myMap) return;
+ // Convert trigger lat/lon to pixel coordinates
   let triggerPos = myMap.latLngToPixel(block.trigger.lat, block.trigger.lon);
-  let radiusPixels = mapDistanceToPixels(block.triggerRadius, block.trigger.lat);
 
   push();
   noFill();
-
-  // Pulsating glow effect
-  let glow = sin(frameCount * 0.08) * 40 + 120;
-  stroke(0, glow, 0, 150);
+  stroke(0, 255, 0, 150); // green for radius
   strokeWeight(2);
-  circle(triggerPos.x, triggerPos.y, radiusPixels * 2);
 
-  // Core glowing dot
+  // Convert trigger radius (lat/lon degrees) to pixels
+  let radiusPixels = mapDistanceToPixels(block.triggerRadius, block.trigger.lat);
+  circle(triggerPos.x, triggerPos.y, radiusPixels * 2); // diameter = radius * 2
+
+  // Draw trigger point itself
+  fill(0, 255, 0);
   noStroke();
-  fill(0, 255, 0, 180);
-  circle(triggerPos.x, triggerPos.y, 8 + sin(frameCount * 0.15) * 2);
-
+  circle(triggerPos.x, triggerPos.y, 8);
   pop();
+
 }
 
+// ========== HELPER TO CONVERT LAT/LON DISTANCE TO PIXELS ==========
+function mapDistanceToPixels(distanceLatLon, lat) {
+  // Convert lat distance to pixels (approximate)
+  let latPixel = myMap.latLngToPixel(lat, 0);
+  let latPixelPlus = myMap.latLngToPixel(lat + distanceLatLon, 0);
+  return abs(latPixelPlus.y - latPixel.y);
+}
 
-// ======== TERRITORY VISUALS ========
 function drawBlock(block) {
   if (!mapInit || !myMap) return;
 
@@ -370,77 +297,24 @@ function drawBlock(block) {
   );
 
   push();
-  if (block.cooldownEnd && block.cooldownEnd > Date.now()) {
-  let remaining = (block.cooldownEnd - Date.now()) / 1000;
+  fill(block.color);
+  stroke(block.color);
+  strokeWeight(2);
+  beginShape();
+  for (let p of blockPixels) vertex(p.x, p.y);
+  endShape(CLOSE);
+  pop();
 
-  // Get position for displaying text
+  let remaining = Math.max(0, (block.cooldownEnd - Date.now()) / 1000);
   let triggerPos = myMap.latLngToPixel(block.trigger.lat, block.trigger.lon);
 
-  // Use the team's color for the timer text
-  let teamCol = color(block.color || "#ffffff");
-  fill(teamCol);
-  noStroke();
-
-  // Larger, bold text
+if (remaining > 0) {
+  fill(0);
   textAlign(CENTER, CENTER);
-  textSize(24);
-  textStyle(BOLD);
-
-  // Display remaining time (whole seconds)
-  text(ceil(remaining) + "s", triggerPos.x, triggerPos.y - 35);
+  text(remaining.toFixed(0), triggerPos.x, triggerPos.y - 25);
 }
 
-  // Edge outline glow
-  // if (block.owner) {
-  //   stroke(red(block.color), green(block.color), blue(block.color), 180);
-  //   strokeWeight(3);
-  //   noFill();
-  //   beginShape();
-  //   for (let p of blockPixels) vertex(p.x, p.y);
-  //   endShape(CLOSE);
-  // }
-
-  // // Cooldown timer display
-  // let remaining = Math.max(0, (block.cooldownEnd - Date.now()) / 1000);
-  // if (remaining > 0) {
-  //   let triggerPos = myMap.latLngToPixel(block.trigger.lat, block.trigger.lon);
-  //   fill(0);
-  //   noStroke();
-  //   textAlign(CENTER, CENTER);
-  //   textSize(13);
-  //   text(remaining.toFixed(0), triggerPos.x, triggerPos.y - 25);
-  // }
-
-  pop();
 }
-
-
-// function drawBlock(block) {
-//   if (!mapInit || !myMap) return;
-
-//   let blockPixels = block.corners.map(corner =>
-//     myMap.latLngToPixel(corner.lat, corner.lon)
-//   );
-
-//   push();
-//   fill(block.color);
-//   stroke(block.color);
-//   strokeWeight(2);
-//   beginShape();
-//   for (let p of blockPixels) vertex(p.x, p.y);
-//   endShape(CLOSE);
-//   pop();
-
-//   let remaining = Math.max(0, (block.cooldownEnd - Date.now()) / 1000);
-//   let triggerPos = myMap.latLngToPixel(block.trigger.lat, block.trigger.lon);
-
-// if (remaining > 0) {
-//   fill(0);
-//   textAlign(CENTER, CENTER);
-//   text(remaining.toFixed(0), triggerPos.x, triggerPos.y - 25);
-// }
-
-// }
 
 function checkBlockTrigger(block) {
   let triggered = false;
