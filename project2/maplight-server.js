@@ -4,10 +4,10 @@ const fs = require("fs");
 const app = express();
 const portHTTPS = 4260;
 
-// Serve static files
+// Serve static files from public/
 app.use(express.static('public'));
 
-// SSL setup
+// SSL setup (for secure HTTPS)
 const options = {
   key: fs.readFileSync("localhost-key.pem"),
   cert: fs.readFileSync("localhost.pem"),
@@ -15,13 +15,13 @@ const options = {
 
 let HTTPSserver = https.createServer(options, app);
 
+// Socket.io setup
 const { Server } = require('socket.io');
 const io = new Server(HTTPSserver);
 
-// Track connected clients
-let currentlyConnected = [];
+// ========== PLAYER + TEAM TRACKING ==========
+let currentlyConnected = []; // list of socket IDs
 
-// Team data
 let teams = {
   red: [],
   blue: [],
@@ -29,22 +29,33 @@ let teams = {
   yellow: []
 };
 
-// Player data
 let players = {}; // { socketId: { name, team, lat, lon } }
 
-// --- TERRITORY SYSTEM ---
-// Each block: id -> { corners, owner (team name or null), trigger point }
+// ========== TERRITORY SYSTEM ==========
+// Each block: id -> { owner, trigger: {lat, lon} }
+// Add more blocks easily here
 let territories = {
-  block1: {
+  campus: {
     owner: null,
     trigger: { lat: 31.14887, lon: 121.4815 }
   },
-  // You can add block2, block3, etc. later
+  apt_north: {
+    owner: null,
+    trigger: { lat: 31.149880, lon: 121.481881 }
+  },
+  lawn: {
+    owner: null,
+    trigger: { lat: 31.148016, lon: 121.481623 }
+  },
+  cstore_apts: {
+    owner: null,
+    trigger: { lat: 31.149935, lon: 121.482278 }
+  }
 };
 
-// Simple helper to compute distance between lat/lon points (in meters)
+// ========== DISTANCE FUNCTION (Haversine Formula) ==========
 function distanceInMeters(lat1, lon1, lat2, lon2) {
-  const R = 6371000; // radius of Earth in meters
+  const R = 6371000; // Earth radius in meters
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = Math.sin(dLat / 2) ** 2 +
@@ -54,67 +65,80 @@ function distanceInMeters(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+// ========== SOCKET CONNECTIONS ==========
 io.on('connection', (socket) => {
-  console.log('A user connected', socket.id);
+  console.log('🟢 A user connected:', socket.id);
   currentlyConnected.push(socket.id);
 
-  // PLAYER JOIN
+  // --- PLAYER JOINS A TEAM ---
   socket.on("playerJoin", (data) => {
     const { name, team } = data;
 
+    // Register team membership
     if (teams[team]) {
       teams[team].push({ id: socket.id, name });
     }
 
+    // Register player in master list
     players[socket.id] = { name, team, lat: null, lon: null };
 
-    console.log(`${name} joined ${team} team`);
+    console.log(`✅ ${name} joined team ${team}`);
+    console.log("Current players:", Object.keys(players).length);
+
+    // Send updated info to everyone
     io.emit("playersUpdate", players);
-    io.emit("territoriesUpdate", territories); // Send current territory state
+
+    // Send territory states to the new player (so they see colors immediately)
+    socket.emit("territoriesUpdate", territories);
   });
 
-  // PLAYER POSITION UPDATE
+  // --- PLAYER POSITION UPDATE ---
   socket.on("playerPosition", (data) => {
     if (players[socket.id]) {
-      players[socket.id].lat = data.lat;
-      players[socket.id].lon = data.lon;
+      const player = players[socket.id];
+      player.lat = data.lat;
+      player.lon = data.lon;
 
-      // Check territory capture
+      // Check all territories for possible capture
       for (const [id, block] of Object.entries(territories)) {
         const dist = distanceInMeters(
           block.trigger.lat, block.trigger.lon,
           data.lat, data.lon
         );
 
-        if (dist < 15) { // within 15m radius
-          if (block.owner !== players[socket.id].team) {
-            block.owner = players[socket.id].team;
-            console.log(`Territory ${id} captured by ${block.owner}`);
-            io.emit("territoriesUpdate", territories);
+        // If player is within ~15 meters of the trigger, they capture it
+        if (dist < 15) {
+          if (block.owner !== player.team) {
+            block.owner = player.team;
+            console.log(`🏁 Territory "${id}" captured by team ${player.team.toUpperCase()}`);
+            io.emit("territoriesUpdate", territories); // update everyone
           }
         }
       }
 
+      // Always broadcast player positions (for teammate visibility)
       io.emit("playersUpdate", players);
     }
   });
 
-  // DISCONNECT
+  // --- PLAYER DISCONNECTS ---
   socket.on("disconnect", () => {
-    console.log("Someone disconnected", socket.id);
+    console.log("🔴 User disconnected:", socket.id);
     currentlyConnected = currentlyConnected.filter(id => id !== socket.id);
 
+    // Remove from teams
     for (const teamName in teams) {
       teams[teamName] = teams[teamName].filter(player => player.id !== socket.id);
     }
 
+    // Remove player record
     delete players[socket.id];
 
     io.emit("playersUpdate", players);
   });
 });
 
-// Start HTTPS server
+// ========== START SERVER ==========
 HTTPSserver.listen(portHTTPS, function () {
-  console.log("HTTPS Server started at port", portHTTPS);
+  console.log(`🚀 HTTPS Server started at port ${portHTTPS}`);
 });

@@ -31,15 +31,15 @@ blocks = [
   {
     name: "campus",
     corners: [
-      { lat: 31.149304, lon: 121.480687 }, // top left
-      { lat: 31.148068, lon: 121.480928 }, // bottom left
-      { lat: 31.148615, lon: 121.482405 }, // bottom right
-      { lat: 31.149570, lon: 121.482198 }  // top right
+      { lat: 31.149304, lon: 121.480687 },
+      { lat: 31.148068, lon: 121.480928 },
+      { lat: 31.148615, lon: 121.482405 },
+      { lat: 31.149570, lon: 121.482198 }
     ],
     triggerPoint: { lat: 31.14887, lon: 121.4815 },
     triggerRadius: 0.00025,
-    color: null, // starts white
-    ownedBy: null // tracks which team currently controls it
+    color: null,
+    ownedBy: null
   },
   {
     name: "apt north of campus",
@@ -88,7 +88,6 @@ function setup() {
   canvas.parent("p5-canvas-container");
   me = new MyPoint();
 
-  // Initialize all blocks with transparent white
   for (let block of blocks) {
     block.color = color(255, 255, 255, 30);
   }
@@ -126,11 +125,24 @@ function setup() {
     updateTeamDisplay();
   });
 
-  // RECEIVE BLOCK UPDATES (shared across all clients)
-  socket.on("blockUpdate", (serverBlocks) => {
-    for (let i = 0; i < blocks.length; i++) {
-      blocks[i].ownedBy = serverBlocks[i].ownedBy;
-      blocks[i].color = color(serverBlocks[i].color[0], serverBlocks[i].color[1], serverBlocks[i].color[2], 80);
+  // RECEIVE TERRITORY UPDATES (from server)
+  socket.on("territoriesUpdate", (territories) => {
+    for (let id in territories) {
+      const t = territories[id];
+      for (let block of blocks) {
+        if (block.name === id || block.name.toLowerCase().includes(id.toLowerCase())) {
+          let c;
+          switch (t.owner) {
+            case "red": c = [255, 0, 0]; break;
+            case "blue": c = [0, 0, 255]; break;
+            case "green": c = [0, 255, 0]; break;
+            case "yellow": c = [255, 255, 0]; break;
+            default: c = [255, 255, 255];
+          }
+          block.color = color(c[0], c[1], c[2], 80);
+          block.ownedBy = t.owner;
+        }
+      }
     }
   });
 }
@@ -193,9 +205,8 @@ function draw() {
       }
     }
 
-    // Update and draw all blocks
+    // Draw blocks (ownership handled by server)
     for (let block of blocks) {
-      checkBlockTrigger(block);
       drawBlock(block);
     }
   }
@@ -219,43 +230,8 @@ function drawBlock(block) {
   pop();
 }
 
-// ========== TRIGGER LOGIC ==========
-function checkBlockTrigger(block) {
-  // Check all players in all teams
-  for (let id in allPlayers) {
-    const player = allPlayers[id];
-    if (player.lat && player.lon) {
-      if (isNearTrigger(player.lat, player.lon, block.triggerPoint, block.triggerRadius)) {
-        // This player’s team captures the block
-        block.ownedBy = player.team;
-
-        let c;
-        switch (player.team) {
-          case "red": c = [255, 0, 0]; break;
-          case "blue": c = [0, 0, 255]; break;
-          case "green": c = [0, 255, 0]; break;
-          case "yellow": c = [255, 255, 0]; break;
-          default: c = [255, 255, 255];
-        }
-
-        block.color = color(c[0], c[1], c[2], 80);
-
-        // Sync update with all clients
-        socket.emit("blockClaim", { name: block.name, team: player.team, color: c });
-      }
-    }
-  }
-}
-
-// ========== DISTANCE CHECK ==========
-function isNearTrigger(lat, lon, point, radius) {
-  const dLat = lat - point.lat;
-  const dLon = lon - point.lon;
-  const distance = sqrt(dLat * dLat + dLon * dLon);
-  return distance < radius;
-}
-
 // ========== MAP/GPS ==========
+let lastSent = 0;
 function handleNewPosition(pos) {
   let lonlat = fixForChineseMap(pos);
   currentLongitude = lonlat[0];
@@ -263,8 +239,10 @@ function handleNewPosition(pos) {
 
   if (mapInit) updateMapContent();
 
-  if (joinedTeam) {
+  // Throttle player position updates for better performance
+  if (joinedTeam && millis() - lastSent > 500) {
     socket.emit("playerPosition", { lat: currentLatitude, lon: currentLongitude });
+    lastSent = millis();
   }
 }
 
