@@ -10,6 +10,8 @@ let teamColor = "";
 let joinedTeam = false;
 
 let teammates = {}; // { socketId: {name, lat, lon, team} }
+let allPlayers = {}; // store everyone for territory checks
+let blocks = [];
 
 if (location.hostname.toLowerCase().startsWith('browsercircus') || location.hostname.toLowerCase().startsWith('www')) {
   socket = io({ path: "/tq/port-4260/socket.io" });
@@ -25,7 +27,7 @@ let mappa_options = {
 };
 
 // ========== BLOCKS SETUP ==========
-let blocks = [
+blocks = [
   {
     name: "campus",
     corners: [
@@ -37,49 +39,47 @@ let blocks = [
     triggerPoint: { lat: 31.14887, lon: 121.4815 },
     triggerRadius: 0.00025,
     color: null, // starts white
+    ownedBy: null // tracks which team currently controls it
   },
-
-   {
+  {
     name: "apt north of campus",
     corners: [
-      { lat: 31.150568, lon: 121.480325 }, // top left
-      { lat: 31.149600, lon: 121.480743 }, // bottom left
-      { lat: 31.149880, lon: 121.482138 }, // bottom right
-      { lat: 31.150798, lon: 121.48194 }  // top right
+      { lat: 31.150568, lon: 121.480325 },
+      { lat: 31.149600, lon: 121.480743 },
+      { lat: 31.149880, lon: 121.482138 },
+      { lat: 31.150798, lon: 121.48194 }
     ],
     triggerPoint: { lat: 31.149880, lon: 121.461881 },
     triggerRadius: 0.00025,
-    color: null, // starts white
+    color: null,
+    ownedBy: null
   },
-
-     {
+  {
     name: "lawn",
     corners: [
-      { lat: 31.147814, lon: 121.481033 }, // top left
-      { lat: 31.147437, lon: 121.481205 }, // bottom left
-      { lat: 31.147492, lon: 121.482514 }, // bottom right
-      { lat: 31.148273, lon: 121.482288 }  // top right
+      { lat: 31.147814, lon: 121.481033 },
+      { lat: 31.147437, lon: 121.481205 },
+      { lat: 31.147492, lon: 121.482514 },
+      { lat: 31.148273, lon: 121.482288 }
     ],
     triggerPoint: { lat: 31.148016, lon: 121.481623 },
     triggerRadius: 0.00025,
-    color: null, // starts white
+    color: null,
+    ownedBy: null
   },
-
-       {
+  {
     name: "cstore apts",
     corners: [
-      { lat: 31.150697, lon: 121.482095 }, // top left
-      { lat: 31.149935, lon: 121.482278 }, // bottom left
-      { lat: 31.150210, lon: 121.483565 }, // bottom right
-      { lat: 31.150913, lon: 121.483286 }  // top right
+      { lat: 31.150697, lon: 121.482095 },
+      { lat: 31.149935, lon: 121.482278 },
+      { lat: 31.150210, lon: 121.483565 },
+      { lat: 31.150913, lon: 121.483286 }
     ],
     triggerPoint: { lat: 31.149935, lon: 121.482278 },
     triggerRadius: 0.00025,
-    color: null, // starts white
+    color: null,
+    ownedBy: null
   },
-
-
-
 ];
 
 // ========== SETUP ==========
@@ -88,9 +88,9 @@ function setup() {
   canvas.parent("p5-canvas-container");
   me = new MyPoint();
 
-  // set initial block colors
+  // Initialize all blocks with transparent white
   for (let block of blocks) {
-    block.color = color(255, 255, 255, 40); // very transparent white
+    block.color = color(255, 255, 255, 30);
   }
 
   // TEAM JOIN LOGIC
@@ -111,16 +111,27 @@ function setup() {
     socket.emit("playerJoin", { name: playerName, team: teamColor });
   });
 
-  // RECEIVE PLAYER UPDATES
+  // RECEIVE PLAYER UPDATES (everyone)
   socket.on("playersUpdate", (players) => {
-    if (!joinedTeam) return;
+    allPlayers = players;
+
+    // Only show teammates in UI and on map
     teammates = {};
     for (let id in players) {
       if (players[id].team === teamColor) {
         teammates[id] = players[id];
       }
     }
+
     updateTeamDisplay();
+  });
+
+  // RECEIVE BLOCK UPDATES (shared across all clients)
+  socket.on("blockUpdate", (serverBlocks) => {
+    for (let i = 0; i < blocks.length; i++) {
+      blocks[i].ownedBy = serverBlocks[i].ownedBy;
+      blocks[i].color = color(serverBlocks[i].color[0], serverBlocks[i].color[1], serverBlocks[i].color[2], 80);
+    }
   });
 }
 
@@ -150,6 +161,7 @@ function capitalize(str) {
 function draw() {
   clear();
 
+  // Initialize map once GPS is available
   if (!mapInit && GPS_GRANTED && currentLongitude != 0) {
     mappa_options.lat = currentLatitude;
     mappa_options.lng = currentLongitude;
@@ -164,7 +176,7 @@ function draw() {
     me.update();
     me.display();
 
-    // DRAW TEAMMATES
+    // Draw visible teammates
     for (let id in teammates) {
       const player = teammates[id];
       if (player.lat && player.lon) {
@@ -181,7 +193,7 @@ function draw() {
       }
     }
 
-    // UPDATE AND DRAW BLOCKS
+    // Update and draw all blocks
     for (let block of blocks) {
       checkBlockTrigger(block);
       drawBlock(block);
@@ -189,7 +201,7 @@ function draw() {
   }
 }
 
-// ========== DRAW A SINGLE BLOCK ==========
+// ========== DRAW BLOCK ==========
 function drawBlock(block) {
   if (!mapInit || !myMap) return;
 
@@ -207,34 +219,35 @@ function drawBlock(block) {
   pop();
 }
 
-// ========== TRIGGER DETECTION PER BLOCK ==========
+// ========== TRIGGER LOGIC ==========
 function checkBlockTrigger(block) {
-  let triggered = false;
-
-  if (isNearTrigger(currentLatitude, currentLongitude, block.triggerPoint, block.triggerRadius)) {
-    triggered = true;
-  }
-
-  for (let id in teammates) {
-    const player = teammates[id];
+  // Check all players in all teams
+  for (let id in allPlayers) {
+    const player = allPlayers[id];
     if (player.lat && player.lon) {
       if (isNearTrigger(player.lat, player.lon, block.triggerPoint, block.triggerRadius)) {
-        triggered = true;
-      }
-    }
-  }
+        // This player’s team captures the block
+        block.ownedBy = player.team;
 
-  if (triggered) {
-    switch (teamColor) {
-      case "red": block.color = color(255, 0, 0, 80); break;
-      case "blue": block.color = color(0, 0, 255, 80); break;
-      case "green": block.color = color(0, 255, 0, 80); break;
-      case "yellow": block.color = color(255, 255, 0, 80); break;
+        let c;
+        switch (player.team) {
+          case "red": c = [255, 0, 0]; break;
+          case "blue": c = [0, 0, 255]; break;
+          case "green": c = [0, 255, 0]; break;
+          case "yellow": c = [255, 255, 0]; break;
+          default: c = [255, 255, 255];
+        }
+
+        block.color = color(c[0], c[1], c[2], 80);
+
+        // Sync update with all clients
+        socket.emit("blockClaim", { name: block.name, team: player.team, color: c });
+      }
     }
   }
 }
 
-// ========== DISTANCE HELPER ==========
+// ========== DISTANCE CHECK ==========
 function isNearTrigger(lat, lon, point, radius) {
   const dLat = lat - point.lat;
   const dLon = lon - point.lon;
@@ -242,21 +255,7 @@ function isNearTrigger(lat, lon, point, radius) {
   return distance < radius;
 }
 
-// ========== MAP / GPS EVENTS ==========
-function touchStarted() {
-  if (mapInit) {
-    let pos = myMap.pixelToLatLng(touches[0].x, touches[0].y);
-    console.log("TOUCHED", pos);
-  } else {
-    console.log("TOUCHED", touches);
-  }
-}
-
-function touchMoved() { }
-function touchEnded() { }
-
-function windowResized() { resizeCanvas(windowWidth, windowHeight); }
-
+// ========== MAP/GPS ==========
 function handleNewPosition(pos) {
   let lonlat = fixForChineseMap(pos);
   currentLongitude = lonlat[0];
@@ -274,6 +273,8 @@ function updateMapContent() {
   me.goalX = myPosOnCanvas.x;
   me.goalY = myPosOnCanvas.y;
 }
+
+function windowResized() { resizeCanvas(windowWidth, windowHeight); }
 
 // ========== PLAYER CLASS ==========
 class MyPoint {
