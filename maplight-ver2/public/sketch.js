@@ -144,6 +144,84 @@ let blocks = [
       cooldownEnd: 0
 
 },
+{
+  name: "west_apt2",
+  corners:[
+    {lat:31.150210, lon:121.479134}, //top left
+    {lat:31.149393, lon:121.479359}, // bottom left
+    {lat:31.149678, lon:121.480304}, //bottom right
+    {lat:31.150458, lon:121.480035} //top right
+  ],
+  trigger:{lat:31.149632, lon:121.480116},
+  triggerRadius: 0.00018,
+  color: null,
+  cooldownEnd: 0
+},
+{
+  name: "east2",
+  corners:[
+    {lat:31.148994, lon:121.482621}, //top left
+    {lat:31.148732, lon:121.482605}, // bottom left
+    {lat:31.148833, lon:121.483302}, //bottom right
+    {lat:31.149099, lon:121.483297} //top right
+  ],
+  trigger:{lat:31.148865, lon:121.482573},
+  triggerRadius: 0.00018,
+  color: null,
+  cooldownEnd: 0
+},
+{
+  name: "idk",
+  corners:[
+    {lat:31.153176, lon:121.480658}, //top left
+    {lat:31.151753, lon:121.480443}, // bottom left
+    {lat:31.152056, lon:121.482760}, //bottom right
+    {lat:31.152616, lon:121.482717} //top right
+  ],
+  trigger:{lat:31.152763, lon:121.481194},
+  triggerRadius: 0.00018,
+  color: null,
+  cooldownEnd: 0
+},
+{
+  name: "idk_second",
+  corners:[
+    {lat:31.154526, lon:121.481634}, //top left
+    {lat:31.153305, lon:121.480840}, // bottom left
+    {lat:31.152781, lon:121.482632}, //bottom right
+    {lat:31.153901, lon:121.482245} //top right
+  ],
+  trigger:{lat:31.153764, lon:121.481612},
+  triggerRadius: 0.00018,
+  color: null,
+  cooldownEnd: 0
+},
+{
+  name: "idk_third",
+  corners:[
+    {lat:31.156243, lon:121.477010}, //top left
+    {lat:31.153929, lon:121.476259}, // bottom left
+    {lat:31.152974, lon:121.479971}, //bottom right
+    {lat:31.155306, lon:121.481022} //top right
+  ],
+  trigger:{lat:31.153396, lon:121.479756},
+  triggerRadius: 0.00018,
+  color: null,
+  cooldownEnd: 0
+},
+{
+  name: "idk_fourth",
+  corners:[
+    {lat:31.151826, lon:121.478662}, //top left
+    {lat:31.150899, lon:121.478426}, // bottom left
+    {lat:31.150826, lon:121.479917}, //bottom right
+    {lat:31.151487, lon:121.479917} //top right
+  ],
+  trigger:{lat:31.151009, lon:121.479774},
+  triggerRadius: 0.00018,
+  color: null,
+  cooldownEnd: 0
+}
 
 
 ];

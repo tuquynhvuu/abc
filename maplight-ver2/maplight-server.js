@@ -63,6 +63,30 @@ let territories = {
     west_apt:{
     owner:null,
     trigger:{lat:31.148957, lon:121.479987}
+  },
+  west_apt2:{
+    owner:null,
+    trigger:{lat:31.149632, lon:121.480116}
+  },
+  east2:{
+    owner:null,
+    trigger:{lat:31.148865, lon:121.482573}
+  },
+  idk:{
+    owner:null,
+    trigger:{lat:31.152763, lon:121.481194}    
+  },
+  idk_second:{
+    owner:null,
+   trigger:{lat:31.153764, lon:121.481612}
+  },
+  idk_third:{
+    owner: null,
+    trigger:{lat:31.153396, lon:121.479756}
+  },
+  idk_fourth:{
+    owner:null,
+    trigger:{lat:31.151009, lon:121.479774}
   }
 };
 
