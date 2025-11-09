@@ -447,7 +447,16 @@ function drawBlock(block) {
     myMap.latLngToPixel(corner.lat, corner.lon)
   );
 
+
   push();
+  fill(block.color);
+  stroke(block.color);
+  strokeWeight(2);
+  beginShape();
+  for (let p of blockPixels) vertex(p.x, p.y);
+  endShape(CLOSE);
+  pop();
+
   if (block.cooldownEnd && block.cooldownEnd > Date.now()) {
   let remaining = (block.cooldownEnd - Date.now()) / 1000;
 
