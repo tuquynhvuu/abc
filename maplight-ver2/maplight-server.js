@@ -135,6 +135,10 @@ let territories = {
   ne3:{
     owner:null,
     trigger:{lat:31.153470, lon:121.469693}
+  },
+  campus_east2:{
+    owner:null,
+    trigger:{lat:31.148401, lon:121.484316}
   }
 };
 
