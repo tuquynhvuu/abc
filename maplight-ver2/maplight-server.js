@@ -66,7 +66,7 @@ let territories = {
   },
   west_apt2:{
     owner:null,
-    trigger:{lat:31.149632, lon:121.480116}
+    trigger:{lat:31.149793, lon:121.480379},
   },
   east2:{
     owner:null,
@@ -87,6 +87,54 @@ let territories = {
   idk_fourth:{
     owner:null,
     trigger:{lat:31.151009, lon:121.479774}
+  },
+  westwest1:{
+    owner:null,
+    trigger:{lat:31.148824, lon:121.478297}
+  },
+  westwest2:{
+    owner:null,
+    trigger:{lat:31.150541, lon:121.478313}
+  },
+  westwest3:{
+    owner:null,
+    trigger:{lat:31.148066, lon:121.477428}
+  },
+  westwest4:{
+    owner:null,
+    trigger:{lat:31.1505781, lon:121.477675}
+  },
+  crystal_plaza:{
+    owner:null,
+    trigger:{lat:31.152331, lon:121.476956}
+  },
+  crystal_bridge:{
+    owner:null,
+    trigger:{lat:31.152409, lon:121.479649},
+  },
+  easteast1:{
+    owner:null,
+    trigger:{lat:31.149535, lon:121.483710}
+  },
+  south1:{
+    owner:null,
+    trigger:{lat:31.146997, lon:121.484756}
+  },
+  south2:{
+    owner:null,
+    trigger:{lat:31.144325, lon:121.485410}
+  },
+  ne1:{
+    owner:null,
+    trigger:{lat:31.152956, lon:121.474767}
+  },
+  ne2:{
+    owner:null,
+    trigger:{lat:31.151652, lon:121.473255}
+  },
+  ne3:{
+    owner:null,
+    trigger:{lat:31.153470, lon:121.469693}
   }
 };
 
