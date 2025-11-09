@@ -1,0 +1,36 @@
+/* Team join form */
+#team-join-container {
+  position: fixed;
+  top: 80px;
+  left: 20px;
+  background: white;
+  padding: 10px;
+  z-index: 1000;
+}
+
+/* GPS button */
+#requestOrientationButton {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  padding: 5px 10px;
+  font-weight: bold;
+}
+
+/* Team display panel */
+#team-display {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 5px 10px;
+  color: white;
+  font-weight: bold;
+  font-family: sans-serif;
+  z-index: 1000;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}

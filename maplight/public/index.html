@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Maplight</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Socket.IO & Leaflet -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- GPS and Client Scripts -->
+  <script src="requestGPS.js"></script>
+  <script defer src="client.js"></script>
+</head>
+<body>
+  <div id="controls">
+    <button onclick="joinTeam('red')">Join Red</button>
+    <button onclick="joinTeam('blue')">Join Blue</button>
+  </div>
+
+  <div id="map"></div>
+  <div id="status">Waiting for GPS...</div>
+</body>
+</html>
