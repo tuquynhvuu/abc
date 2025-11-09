@@ -42,11 +42,11 @@ let territories = {
   },
   lawn: {
     owner: null,
-    triggerPoint: { lat: 31.147768, lon: 121.481848}
+    trigger: { lat: 31.147768, lon: 121.481848}
   },
   cstore_apts: {
     owner: null,
-    triggerPoint: { lat: 31.150224, lon: 121.483034}
+    trigger: { lat: 31.150224, lon: 121.483034}
   },
   metro:{
     owner:null,
@@ -58,11 +58,11 @@ let territories = {
   },
   campus_east:{
     owner:null,
-    triggerPoint:{lat:31.149421, lon:121.482675}
+    trigger:{lat:31.149421, lon:121.482675}
   },
     west_apt:{
     owner:null,
-    triggerPoint:{lat:31.148957, lon:121.479987}
+    trigger:{lat:31.148957, lon:121.479987}
   }
 };
 
@@ -104,22 +104,36 @@ io.on('connection', (socket) => {
       const player = players[socket.id];
       player.lat = data.lat;
       player.lon = data.lon;
+      let changed = false;
 
-      for (const [id, block] of Object.entries(territories)) {
-        const dist = distanceInMeters(
-          block.trigger.lat, block.trigger.lon,
-          data.lat, data.lon
-        );
+    for (const [id, block] of Object.entries(territories)) {
+      // Use triggerPoint consistently
+      const trigger = block.trigger;
+      if (!trigger) continue; // skip if block missing trigger point
 
-        if (dist < 20) {
-          if (block.owner !== player.team) {
-            block.owner = player.team;
-            console.log(`🏁 Territory "${id}" captured by team ${player.team.toUpperCase()}`);
-            io.emit("territoriesUpdate", territories); // update everyone
-          }
+      const dist = distanceInMeters(
+        trigger.lat, trigger.lon,
+        data.lat, data.lon
+      );
+
+      if (block.cooldownEnd && block.cooldownEnd > Date.now()) {
+  continue; // skip, territory is on cooldown
+  }
+
+      // if player is close enough to claim
+      if (dist < 20) {
+        if (block.owner !== player.team) {
+          block.owner = player.team;
+          block.cooldownEnd = Date.now() + 30_000; // 30 sec cooldown
+          console.log(`Territory "${id}" captured by ${player.team.toUpperCase()}`);
+          changed = true;
+
         }
       }
+    }
 
+
+    if (changed) io.emit("territoriesUpdate", territories);
       io.emit("playersUpdate", players);
     }
   });

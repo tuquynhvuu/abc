@@ -10,6 +10,7 @@ let teamColor = "";
 let joinedTeam = false;
 
 let teammates = {}; // { socketId: {name, lat, lon, team} }
+let allPlayers = {};
 
 if (location.hostname.toLowerCase().startsWith('browsercircus')) {
   socket = io({ path: "/YOURPATH-and-PORT/socket.io" });
@@ -33,9 +34,10 @@ let blocks = [
       { lat: 31.148615, lon: 121.482405 }, // bottom right
       { lat: 31.149570, lon: 121.482198 }  // top right
     ],
-    triggerPoint: { lat: 31.148769, lon: 121.481580 },
+    trigger: { lat: 31.148769, lon: 121.481580 },
     triggerRadius: 0.00018,
     color: null, // starts white
+    cooldownEnd: 0
   },
 
    {
@@ -46,9 +48,11 @@ let blocks = [
       { lat: 31.149880, lon: 121.482138 }, // bottom right
       { lat: 31.150798, lon: 121.48194 }  // top right
     ],
-    triggerPoint:{ lat: 31.150045, lon: 121.481865},
+    trigger:{ lat: 31.150045, lon: 121.481865},
     triggerRadius: 0.00018,
     color: null, // starts white
+        cooldownEnd: 0
+
   },
 
      {
@@ -59,9 +63,11 @@ let blocks = [
       { lat: 31.147492, lon: 121.482514 }, // bottom right
       { lat: 31.148273, lon: 121.482288 }  // top right
     ],
-    triggerPoint: { lat: 31.147768, lon: 121.481848},
+    trigger: { lat: 31.147768, lon: 121.481848},
     triggerRadius: 0.00018,
     color: null, // starts white
+        cooldownEnd: 0
+
   },
 
        {
@@ -72,9 +78,11 @@ let blocks = [
       { lat: 31.150210, lon: 121.483565 }, // bottom right
       { lat: 31.150913, lon: 121.483286 }  // top right
     ],
-    triggerPoint: { lat: 31.150224, lon: 121.483034},
+    trigger: { lat: 31.150224, lon: 121.483034},
     triggerRadius: 0.00018,
     color: null, // starts white
+        cooldownEnd: 0
+
   },
 
 {
@@ -85,9 +93,11 @@ let blocks = [
     {lat:31.151096, lon:121.482186},
     {lat:31.151542, lon:121.482101}
   ],
-  triggerPoint: {lat:31.151257, lon:121.481865},
+  trigger: {lat:31.151257, lon:121.481865},
   triggerRadius: 0.00018,
   color: null,
+      cooldownEnd: 0
+
 },
 
 {
@@ -98,9 +108,11 @@ let blocks = [
     {lat:31.151009, lon:121.481500},
     {lat:31.151436, lon:121.481387}
   ],
-  triggerPoint: {lat:31.150917, lon:121.480985},
+  trigger: {lat:31.150917, lon:121.480985},
   triggerRadius: 0.00018,
   color: null,
+      cooldownEnd: 0
+
 },
 
 {
@@ -111,9 +123,11 @@ let blocks = [
     {lat:31.149200, lon:121.483168},
     {lat:31.149503, lon:121.483120}
   ],
-  triggerPoint:{lat:31.149421, lon:121.482675},
+  trigger:{lat:31.149421, lon:121.482675},
   triggerRadius: 0.00018,
   color: null,
+      cooldownEnd: 0
+
 },
 
 {
@@ -124,9 +138,11 @@ let blocks = [
     {lat:31.147924, lon:121.480566}, //bottom right
     {lat:31.149076, lon:121.480246} //top right
   ],
-  triggerPoint:{lat:31.148957, lon:121.479987},
+  trigger:{lat:31.148957, lon:121.479987},
   triggerRadius: 0.00018,
   color: null,
+      cooldownEnd: 0
+
 },
 
 
@@ -159,8 +175,10 @@ function setup() {
     socket.emit("playerJoin", { name: playerName, team: teamColor });
   });
 
-  socket.on("playersUpdate", (players) => {
-    if (!joinedTeam) return;
+socket.on("playersUpdate", (players) => {
+  allPlayers = players; // everyone for map display
+
+  if (joinedTeam) {
     teammates = {};
     for (let id in players) {
       if (players[id].team === teamColor) {
@@ -168,7 +186,9 @@ function setup() {
       }
     }
     updateTeamDisplay();
-  });
+  }
+});
+
 }
 
 function updateTeamDisplay() {
@@ -209,21 +229,25 @@ function draw() {
     // me.update();
     // me.display();
 
-   for (let id in teammates) {
-      const player = teammates[id];
-      if (player.lat && player.lon) {
-        let pos = myMap.latLngToPixel(player.lat, player.lon);
-        fill(player.team);
-        stroke("black");
-        strokeWeight(2);
-        circle(pos.x, pos.y, 20);
+for (let id in allPlayers) {
+  const player = allPlayers[id];
+  if (player.lat && player.lon) {
+    let pos = myMap.latLngToPixel(player.lat, player.lon);
+    fill(player.team);
+    stroke("black");
+    strokeWeight(2);
+    circle(pos.x, pos.y, 20);
 
-        noStroke();
-        fill("black");
-        textAlign(CENTER);
-        text(player.name, pos.x, pos.y - 15);
-      }
+    // Show name only if teammate
+    if (teammates[id]) {
+      noStroke();
+      fill("black");
+      textAlign(CENTER);
+      text(player.name, pos.x, pos.y - 15);
     }
+  }
+}
+
 
     for (let block of blocks) {
       checkBlockTrigger(block);
@@ -238,7 +262,7 @@ function draw() {
 function drawTrigger(block){
   if (!mapInit || !myMap) return;
  // Convert trigger lat/lon to pixel coordinates
-  let triggerPos = myMap.latLngToPixel(block.triggerPoint.lat, block.triggerPoint.lon);
+  let triggerPos = myMap.latLngToPixel(block.trigger.lat, block.trigger.lon);
 
   push();
   noFill();
@@ -246,7 +270,7 @@ function drawTrigger(block){
   strokeWeight(2);
 
   // Convert trigger radius (lat/lon degrees) to pixels
-  let radiusPixels = mapDistanceToPixels(block.triggerRadius, block.triggerPoint.lat);
+  let radiusPixels = mapDistanceToPixels(block.triggerRadius, block.trigger.lat);
   circle(triggerPos.x, triggerPos.y, radiusPixels * 2); // diameter = radius * 2
 
   // Draw trigger point itself
@@ -254,6 +278,7 @@ function drawTrigger(block){
   noStroke();
   circle(triggerPos.x, triggerPos.y, 8);
   pop();
+
 }
 
 // ========== HELPER TO CONVERT LAT/LON DISTANCE TO PIXELS ==========
@@ -279,32 +304,35 @@ function drawBlock(block) {
   for (let p of blockPixels) vertex(p.x, p.y);
   endShape(CLOSE);
   pop();
+
+  let remaining = Math.max(0, (block.cooldownEnd - Date.now()) / 1000);
+  let triggerPos = myMap.latLngToPixel(block.trigger.lat, block.trigger.lon);
+
+if (remaining > 0) {
+  fill(0);
+  textAlign(CENTER, CENTER);
+  text(remaining.toFixed(0), triggerPos.x, triggerPos.y - 25);
+}
+
 }
 
 function checkBlockTrigger(block) {
   let triggered = false;
 
-  if (isNearTrigger(currentLatitude, currentLongitude, block.triggerPoint, block.triggerRadius)) {
+  if (isNearTrigger(currentLatitude, currentLongitude, block.trigger, block.triggerRadius)) {
     triggered = true;
   }
 
   for (let id in teammates) {
     const player = teammates[id];
     if (player.lat && player.lon) {
-      if (isNearTrigger(player.lat, player.lon, block.triggerPoint, block.triggerRadius)) {
+      if (isNearTrigger(player.lat, player.lon, block.trigger, block.triggerRadius)) {
         triggered = true;
       }
     }
   }
 
-  if (triggered) {
-    switch (teamColor) {
-      case "red": block.color = color(255, 0, 0, 80); break;
-      case "blue": block.color = color(0, 0, 255, 80); break;
-      case "green": block.color = color(0, 255, 0, 80); break;
-      case "yellow": block.color = color(255, 255, 0, 80); break;
-    }
-  }
+
 }
 
 function isNearTrigger(lat, lon, point, radius) {
@@ -339,6 +367,23 @@ function handleNewPosition(pos) {
     socket.emit("playerPosition", { lat: currentLatitude, lon: currentLongitude });
   }
 }
+
+// Receive updates from the server when any team captures a territory
+socket.on("territoriesUpdate", (updatedTerritories) => {
+  for (let i = 0; i < blocks.length; i++) {
+    const updated = updatedTerritories[blocks[i].name];
+    if (updated && updated.owner) {
+      switch (updated.owner) {
+        case "red": blocks[i].color = color(255, 0, 0, 80); break;
+        case "blue": blocks[i].color = color(0, 0, 255, 80); break;
+        case "green": blocks[i].color = color(0, 255, 0, 80); break;
+        case "yellow": blocks[i].color = color(255, 255, 0, 80); break;
+        default: blocks[i].color = color(255, 255, 255, 40); break; // default transparent white
+      }
+      blocks[i].cooldownEnd = updated.cooldownEnd || 0;
+    }
+  }
+});
 
 function updateMapContent() {
   let myPosOnCanvas = myMap.latLngToPixel(currentLatitude, currentLongitude);
