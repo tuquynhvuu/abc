@@ -107,7 +107,7 @@ io.on('connection', (socket) => {
         );
 
         // If player is within ~15 meters of the trigger, they capture it
-        if (dist < 15) {
+        if (dist < 25) {
           if (block.owner !== player.team) {
             block.owner = player.team;
             console.log(`🏁 Territory "${id}" captured by team ${player.team.toUpperCase()}`);
