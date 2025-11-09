@@ -67,7 +67,7 @@ function distanceInMeters(lat1, lon1, lat2, lon2) {
 
 // ========== SOCKET CONNECTIONS ==========
 io.on('connection', (socket) => {
-  console.log('🟢 A user connected:', socket.id);
+  console.log('A user connected:', socket.id);
   currentlyConnected.push(socket.id);
 
   // --- PLAYER JOINS A TEAM ---
@@ -82,7 +82,7 @@ io.on('connection', (socket) => {
     // Register player in master list
     players[socket.id] = { name, team, lat: null, lon: null };
 
-    console.log(`✅ ${name} joined team ${team}`);
+    console.log(`${name} joined team ${team}`);
     console.log("Current players:", Object.keys(players).length);
 
     // Send updated info to everyone
@@ -107,7 +107,7 @@ io.on('connection', (socket) => {
         );
 
         // If player is within ~15 meters of the trigger, they capture it
-        if (dist < 25) {
+        if (dist < 20) {
           if (block.owner !== player.team) {
             block.owner = player.team;
             console.log(`🏁 Territory "${id}" captured by team ${player.team.toUpperCase()}`);
@@ -123,7 +123,7 @@ io.on('connection', (socket) => {
 
   // --- PLAYER DISCONNECTS ---
   socket.on("disconnect", () => {
-    console.log("🔴 User disconnected:", socket.id);
+    console.log("User disconnected:", socket.id);
     currentlyConnected = currentlyConnected.filter(id => id !== socket.id);
 
     // Remove from teams
@@ -140,5 +140,5 @@ io.on('connection', (socket) => {
 
 // ========== START SERVER ==========
 HTTPSserver.listen(portHTTPS, function () {
-  console.log(`🚀 HTTPS Server started at port ${portHTTPS}`);
+  console.log(`HTTPS Server started at port ${portHTTPS}`);
 });
