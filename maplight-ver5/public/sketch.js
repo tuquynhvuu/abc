@@ -395,7 +395,7 @@ let blocks = [
   name: "campus_east2",
   corners:[
     // {lat:31.148482, lon:121.478792}, //top left
-        {lat:31.148314, lon:121.482358}, //top left
+        {lat:31.148314, lon:121.482358}, //FIXED top left
 
     {lat:31.147428, lon:121.482803}, // bottom left
     {lat:31.147759, lon:121.484756}, //bottom right
