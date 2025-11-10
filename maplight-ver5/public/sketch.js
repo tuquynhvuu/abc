@@ -12,8 +12,8 @@ let joinedTeam = false;
 let teammates = {}; // { socketId: {name, lat, lon, team} }
 let allPlayers = {};
 
-if (location.hostname.toLowerCase().startsWith('browsercircus')) {
-  socket = io({ path: "/YOURPATH-and-PORT/socket.io" });
+if (location.hostname.toLowerCase().startsWith('browsercircus') || location.hostname.toLowerCase().startsWith('www')) {
+  socket = io({ path: "/tq/port-4260/socket.io" });
 } else {
   socket = io();
 }
