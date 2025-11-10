@@ -1,0 +1,122 @@
+/* --- General Reset --- */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: #f3f3f3;
+  color: #333;
+}
+
+/* --- Canvas Container --- */
+#p5-canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- GPS Request Button --- */
+#requestOrientationButton {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  z-index: 20;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: background-color 0.2s ease;
+}
+
+#requestOrientationButton:hover {
+  background-color: #0056b3;
+}
+
+/* --- Team Join Form --- */
+#team-join-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  padding: 25px 35px;
+  text-align: center;
+}
+
+#team-join-container h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+#team-join-container input,
+#team-join-container select {
+  width: 80%;
+  padding: 8px;
+  margin: 6px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+#joinTeamButton {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  margin-top: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#joinTeamButton:hover {
+  background-color: #1e7e34;
+}
+
+/* --- Team Display Panel --- */
+#team-display {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  padding: 8px 0;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+  z-index: 15;
+}
+
+#my-team-name {
+  margin-right: 8px;
+}
+
+/* --- Mobile Tweaks --- */
+@media (max-width: 600px) {
+  #team-join-container {
+    width: 85%;
+    padding: 20px;
+  }
+
+  #requestOrientationButton {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  #team-display {
+    font-size: 14px;
+  }
+}
