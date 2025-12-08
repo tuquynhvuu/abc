@@ -354,6 +354,31 @@ function setup() {
       requestGPS();
     }
   }, 1000);
+
+  // In setup(), after canvas creation:
+console.log("=== DEBUG INFO ===");
+console.log("1. Script loading order check...");
+console.log("2. GPS_GRANTED:", typeof GPS_GRANTED !== 'undefined' ? GPS_GRANTED : "undefined");
+console.log("3. window.requestGPS:", typeof window.requestGPS);
+console.log("4. window.handleNewPosition:", typeof window.handleNewPosition);
+console.log("5. window.fixForChineseMap:", typeof window.fixForChineseMap);
+
+// Simple direct GPS test
+if (navigator.geolocation) {
+  console.log("6. navigator.geolocation: AVAILABLE");
+  // Quick test without permissions
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      console.log("✅ Direct GPS test SUCCESS:", pos.coords);
+    },
+    function(err) {
+      console.log("❌ Direct GPS test FAILED:", err.code, err.message);
+    },
+    { timeout: 3000 }
+  );
+} else {
+  console.log("6. navigator.geolocation: NOT AVAILABLE");
+}
 }
 
 function draw() {
