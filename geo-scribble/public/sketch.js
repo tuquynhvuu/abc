@@ -91,6 +91,30 @@ let hideAll = false;
 function preload() {}
 
 function setup() {
+
+  x// Add this at the beginning of setup() after console.log
+console.log("📍 Current URL:", window.location.href);
+console.log("📍 Hostname:", window.location.hostname);
+console.log("📍 Pathname:", window.location.pathname);
+
+// Test multiple image paths
+const testPaths = [
+  "/drawings/drawing-u-mixjcyijsaq3fi-1765225685826.png",
+  "drawings/drawing-u-mixjcyijsaq3fi-1765225685826.png",
+  window.location.origin + "/drawings/drawing-u-mixjcyijsaq3fi-1765225685826.png",
+  window.location.origin + ":4260/drawings/drawing-u-mixjcyijsaq3fi-1765225685826.png"
+];
+
+testPaths.forEach((path, i) => {
+  const testImg = new Image();
+  testImg.onload = function() {
+    console.log(`✅ Path ${i} works: ${path}`);
+  };
+  testImg.onerror = function() {
+    console.log(`❌ Path ${i} fails: ${path}`);
+  };
+  testImg.src = path;
+});
   console.log("🎨 Sketch setup starting...");
   
   canvas = createCanvas(windowWidth, windowHeight);
@@ -811,7 +835,6 @@ function mousePressed() {
   }
   return false;
 }
-
 // user location marker class
 class MyPoint{
   constructor(){
