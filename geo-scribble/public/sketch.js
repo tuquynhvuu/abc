@@ -91,32 +91,6 @@ let hideAll = false;
 function preload() {}
 
 function setup() {
-
-  x// Add this at the beginning of setup() after console.log
-console.log("📍 Current URL:", window.location.href);
-console.log("📍 Hostname:", window.location.hostname);
-console.log("📍 Pathname:", window.location.pathname);
-
-// Test multiple image paths
-const testPaths = [
-  "/drawings/drawing-u-mixjcyijsaq3fi-1765225685826.png",
-  "drawings/drawing-u-mixjcyijsaq3fi-1765225685826.png",
-  window.location.origin + "/drawings/drawing-u-mixjcyijsaq3fi-1765225685826.png",
-  window.location.origin + ":4260/drawings/drawing-u-mixjcyijsaq3fi-1765225685826.png"
-];
-
-testPaths.forEach((path, i) => {
-  const testImg = new Image();
-  testImg.onload = function() {
-    console.log(`✅ Path ${i} works: ${path}`);
-  };
-  testImg.onerror = function() {
-    console.log(`❌ Path ${i} fails: ${path}`);
-  };
-  testImg.src = path;
-});
-  console.log("🎨 Sketch setup starting...");
-  
   canvas = createCanvas(windowWidth, windowHeight);
   canvas.parent("p5-canvas-container");
 
@@ -130,56 +104,17 @@ testPaths.forEach((path, i) => {
   myColor = color(0, 100, 100, 0.5); 
   me = new MyPoint();
 
-  // Load any existing drawings from localStorage
-  try {
-    let saved = localStorage.getItem('geoDrawings');
-    if (saved) {
-      let parsed = JSON.parse(saved);
-      imagesMeta = parsed.meta || [];
-      
-      // Try to create images from dataURLs
-      parsed.images?.forEach(item => {
-        if (item.dataURL && item.meta) {
-          let img = createImg(item.dataURL, item.meta.file);
-          img.hide();
-          loadedImages[item.meta.file] = img;
-        }
-      });
-      console.log("📂 Loaded", imagesMeta.length, "drawings from localStorage");
-    }
-  } catch (e) {
-    console.log("⚠️ Could not load from localStorage:", e.message);
-  }
-
   // load all images from server 
   function reloadImages(metaList) {
-    console.log("🔄 Server sent", metaList?.length || 0, "image metadata");
-    
-    // Keep local images, add server metadata
-    let localFiles = imagesMeta.map(m => m.file);
-    metaList?.forEach(meta => {
-      if (!localFiles.includes(meta.file)) {
-        imagesMeta.push(meta);
-      }
+    // store image info
+    imagesMeta = metaList || [];
+    // clear old images
+    loadedImages = {};
+    //load each image
+    imagesMeta.forEach(m => {
+      if (!loadedImages[m.file]) loadedImages[m.file] = loadImage("/drawings/" + m.file);
     });
-    
-    // Try to load from server (but don't crash if it fails)
-    metaList?.forEach(meta => {
-      if (!loadedImages[meta.file]) {
-        let img = loadImage(
-          "drawings/" + meta.file,
-          function() {
-            console.log("✅ Loaded from server:", meta.file);
-            loadedImages[meta.file] = img;
-          },
-          function(err) {
-            console.log("⚠️ Could not load from server:", meta.file);
-            // Don't crash - just skip
-          }
-        );
-      }
-    });
-    
+    // clear current stroke
     currentStroke = [];
   }
 
@@ -188,29 +123,12 @@ testPaths.forEach((path, i) => {
 
   // when new image is saved by anyone
   socket.on("newImage", (meta) => {
-    console.log("📸 New image notification:", meta.file);
-    
-    // Add to metadata
-    if (!imagesMeta.find(m => m.file === meta.file)) {
-      imagesMeta.push(meta);
-    }
-    
-    // Try to load from server
-    if (!loadedImages[meta.file]) {
-      let img = loadImage(
-        "drawings/" + meta.file,
-        function() {
-          console.log("✅ Loaded new image:", meta.file);
-          loadedImages[meta.file] = img;
-        },
-        function(err) {
-          console.log("⚠️ Could not load new image (server may not have saved it yet):", meta.file);
-        }
-      );
-    }
+    // add to image list and load it
+    imagesMeta.push(meta);
+    if (!loadedImages[meta.file]) loadedImages[meta.file] = loadImage("/drawings/" + meta.file);
   });
 
-  // when image is deleted -> remove from everything
+  // when image is deleted -> remove from everhthing
   socket.on("deleteImage", (filename) => {
     imagesMeta = imagesMeta.filter(m => m.file !== filename);
     delete loadedImages[filename];
@@ -320,7 +238,9 @@ testPaths.forEach((path, i) => {
   clearAllBtn.style('font-weight','bold');
   clearAllBtn.hide(); 
   clearAllBtn.mousePressed(() => { 
+    //precaution
     if(confirm("WARNING: this will delete ALL drawings from EVERYONE, including your own. Are you sure?")) {
+      // tell server to clear everything
       socket.emit("clearAllImages"); 
       drawings = [];
       imagesMeta = [];
@@ -375,8 +295,6 @@ testPaths.forEach((path, i) => {
 
   // tell server you joined
   socket.emit("joinUser");
-  
-  console.log("✅ Sketch setup complete");
 }
 
 function draw() {
@@ -389,26 +307,28 @@ function draw() {
 
   // if map not ready, but gps granted and location available
   if(!mapInit && typeof GPS_GRANTED !== 'undefined' && GPS_GRANTED && currentLongitude != 0){
-    console.log("🗺️ Creating map with location:", currentLatitude, currentLongitude);
-    
+    // set map to user location
     mappa_options.lat = currentLatitude;
     mappa_options.lng = currentLongitude;
     mappa_options.subdomains = "1234";
 
+    // create the map
     myMap = mappa.tileMap(mappa_options);
+
+    // overlay canvas on map
     myMap.overlay(canvas);
+    // update when map moves
     myMap.onChange(updateMapContent);
     mapInit = true;
     
-    console.log("✅ Map created");
-    
+    // set up drawing area after short delay
     setTimeout(() => {
-      if(drawMode && myMap && myMap.map){
+      if(drawMode){
         // freeze map for drawing
         freezeMap();
         
         // set drawing boundaries once
-        if(!boundsInitialized && myMap){
+        if(!boundsInitialized){
           // get top-left corner of screen
           let tl = myMap.pixelToLatLng(0,0);
           // get bottom-right corner of screen
@@ -417,7 +337,6 @@ function draw() {
           frozenBounds = {latMax: tl.lat, latMin: br.lat, lonMin: tl.lng, lonMax: br.lng};
           // boundaries are now set
           boundsInitialized = true;
-          console.log("📐 Drawing boundaries set");
         }
       }
     }, 100);
@@ -432,35 +351,15 @@ function draw() {
     // draw server pngs 
     for (let meta of imagesMeta) {
       let img = loadedImages[meta.file];
-      
-      // Skip if no image
       if (!img) continue;
-      
-      // Check if image is loaded
-      let isLoaded = false;
-      if (img instanceof p5.Image) {
-        isLoaded = img.width > 0;
-      } else if (img.elt && img.elt.tagName === 'IMG') {
-        isLoaded = img.elt.complete && img.elt.naturalHeight > 0;
-      }
-      
-      if (!isLoaded) continue;
-      
       // skip if hiding others' drawings
       if(hideAll && meta.userId !== myUserId) continue;
-      
       // convert gps coordinates to screen position
+      //top left & bot right mapping
       let tl = myMap.latLngToPixel(meta.latMax, meta.lonMin);
       let br = myMap.latLngToPixel(meta.latMin, meta.lonMax);
-      
-      // Only draw if we have valid coordinates
-      if (tl && br) {
-        if (img instanceof p5.Image) {
-          image(img, tl.x, tl.y, br.x - tl.x, br.y - tl.y);
-        } else if (img.elt && img.elt.tagName === 'IMG') {
-          image(img.elt, tl.x, tl.y, br.x - tl.x, br.y - tl.y);
-        }
-      }
+      // draw the saved png image
+      image(img, tl.x, tl.y, br.x - tl.x, br.y - tl.y);
     }
 
     // draw all current strokes from all users on canvas
@@ -494,7 +393,6 @@ function draw() {
       drawLayer.beginShape();
       // add each point in current stroke
       for(let p of currentStroke) drawLayer.vertex(p.x, p.y);
-      // Use CLOSE parameter instead of just endShape()
       drawLayer.endShape();
     }
     
@@ -602,6 +500,7 @@ function drawStartScreen() {
   // switch back to hsb for drawing
   colorMode(HSB, 360, 100, 100, 1);
   
+  // restore drawing state
   pop();
 }
 
@@ -618,6 +517,7 @@ function mousePressed() {
 // draw the rainbow color stroke slider
 function drawRainbowSlider() {
   push();
+  translate(0, 0);
   noStroke();
   for (let i = 0; i < hueSliderWidth; i++) {
     // calculate hue for pos
@@ -698,53 +598,35 @@ function touchEnded() {
   if (!mapInit || !drawMode || currentStroke.length === 0 || showStartScreen) return;
 
   // save current stroke as PNG
+  // create filename with user id and timestamp
   let filename = `drawing-${myUserId}-${Date.now()}.png`;
+  
+  // convert drawing layer to png data
   let dataURL = drawLayer.elt.toDataURL("image/png");
 
+  // info about drawing
   let meta = { 
+    // filename
     file: filename, 
+    // who 
     userId: myUserId, 
+    // when
     timestamp: Date.now(),
+    // boundaries
     latMax: frozenBounds.latMax, 
     latMin: frozenBounds.latMin,
     lonMin: frozenBounds.lonMin, 
     lonMax: frozenBounds.lonMax,
+    //  size
     width: drawLayer.width, 
     height: drawLayer.height 
   };
-
-  console.log("💾 Saving drawing:", filename);
-
-  // Create and store image locally immediately
-  let img = createImg(dataURL, filename);
-  img.hide();
-  loadedImages[filename] = img;
-  imagesMeta.push(meta);
-  
-  // Also save to localStorage
-  try {
-    let saved = localStorage.getItem('geoDrawings');
-    let data = saved ? JSON.parse(saved) : { meta: [], images: [] };
-    
-    data.meta.push(meta);
-    data.images.push({
-      meta: meta,
-      dataURL: dataURL
-    });
-    
-    localStorage.setItem('geoDrawings', JSON.stringify(data));
-    console.log("💾 Saved to localStorage");
-  } catch (e) {
-    console.log("⚠️ Could not save to localStorage:", e.message);
-  }
 
   // send png to server for saving
   socket.emit("savePNG", { image: dataURL, meta: meta });
 
   // clear current stroke
   currentStroke = [];
-  
-  console.log("✅ Drawing saved locally, waiting for server...");
 }
 
 function windowResized(){
@@ -770,7 +652,7 @@ function windowResized(){
 
 // freeze map interactions for draw mode
 function freezeMap(){
-  if(!mapInit || !myMap || !myMap.map) return;
+  if(!mapInit) return;
   // disable all controls
   myMap.map.dragging.disable();
   myMap.map.touchZoom.disable();
@@ -782,7 +664,7 @@ function freezeMap(){
 
 // unfreeze map interactions for view mode
 function unfreezeMap(){
-  if(!mapInit || !myMap || !myMap.map) return;
+  if(!mapInit) return;
   // enable all controls
   myMap.map.dragging.enable();
   myMap.map.touchZoom.enable();
@@ -812,29 +694,6 @@ function updateMapContent(){
   me.goalY = myPosOnCanvas.y;
 }
 
-
-// Add these functions to handle mobile touch properly
-function touchStarted() {
-  // This prevents default touch behavior and allows drawing
-  if (showStartScreen) {
-    showStartScreen = false;
-    for (let btn of controlButtons) {
-      btn.show();
-    }
-  }
-  return false; // Prevent default
-}
-
-// Also ensure mousePressed works for both desktop and mobile
-function mousePressed() {
-  if (showStartScreen) {
-    showStartScreen = false;
-    for (let btn of controlButtons) {
-      btn.show();
-    }
-  }
-  return false;
-}
 // user location marker class
 class MyPoint{
   constructor(){
