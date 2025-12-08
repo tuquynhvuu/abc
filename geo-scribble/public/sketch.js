@@ -105,28 +105,74 @@ function setup() {
   me = new MyPoint();
 
   // load all images from server 
-  function reloadImages(metaList) {
-    // store image info
-    imagesMeta = metaList || [];
-    // clear old images
-    loadedImages = {};
-    //load each image
-    imagesMeta.forEach(m => {
-      if (!loadedImages[m.file]) loadedImages[m.file] = loadImage("/drawings/" + m.file);
-    });
-    // clear current stroke
-    currentStroke = [];
-  }
+// load all images from server 
+function reloadImages(metaList) {
+  // store image info
+  imagesMeta = metaList || [];
+  // clear old images
+  loadedImages = {};
+  
+  // load each image WITH ERROR HANDLING
+  imagesMeta.forEach(m => {
+    if (!loadedImages[m.file]) {
+      // Try to load image, but don't crash if it fails
+      let img = loadImage(
+        "/drawings/" + m.file,
+        function() {
+          // Success
+          loadedImages[m.file] = img;
+        },
+        function(err) {
+          console.log("⚠️ Could not load image:", m.file, "- Server may not have it yet");
+          // Don't crash - just skip this image
+        }
+      );
+    }
+  });
+  
+  // clear current stroke
+  currentStroke = [];
+}
 
   // when server sends all saved images
   socket.on("allImages", reloadImages);
 
   // when new image is saved by anyone
-  socket.on("newImage", (meta) => {
-    // add to image list and load it
-    imagesMeta.push(meta);
-    if (!loadedImages[meta.file]) loadedImages[meta.file] = loadImage("/drawings/" + meta.file);
-  });
+// when new image is saved by anyone
+socket.on("newImage", (meta) => {
+  console.log("📸 Server says new image:", meta.file);
+  
+  // add to image list
+  imagesMeta.push(meta);
+  
+  // Try to load with error handling
+  if (!loadedImages[meta.file]) {
+    let img = loadImage(
+      "/drawings/" + meta.file,
+      function() {
+        console.log("✅ Image loaded successfully:", meta.file);
+        loadedImages[meta.file] = img;
+      },
+      function(err) {
+        console.log("⚠️ Could not load new image (might not be saved yet):", meta.file);
+        // Try again in 2 seconds
+        setTimeout(() => {
+          if (!loadedImages[meta.file]) {
+            let retryImg = loadImage(
+              "/drawings/" + meta.file,
+              function() {
+                loadedImages[meta.file] = retryImg;
+              },
+              function() {
+                console.log("❌ Failed to load after retry:", meta.file);
+              }
+            );
+          }
+        }, 2000);
+      }
+    );
+  }
+});
 
   // when image is deleted -> remove from everhthing
   socket.on("deleteImage", (filename) => {
@@ -349,18 +395,25 @@ function draw() {
     me.display();
 
     // draw server pngs 
-    for (let meta of imagesMeta) {
-      let img = loadedImages[meta.file];
-      if (!img) continue;
-      // skip if hiding others' drawings
-      if(hideAll && meta.userId !== myUserId) continue;
-      // convert gps coordinates to screen position
-      //top left & bot right mapping
-      let tl = myMap.latLngToPixel(meta.latMax, meta.lonMin);
-      let br = myMap.latLngToPixel(meta.latMin, meta.lonMax);
-      // draw the saved png image
+// draw server pngs 
+  for (let meta of imagesMeta) {
+    let img = loadedImages[meta.file];
+    
+    // Skip if image didn't load or is still loading
+    if (!img || img.width === 0) continue;
+    
+    // skip if hiding others' drawings
+    if(hideAll && meta.userId !== myUserId) continue;
+    
+    // convert gps coordinates to screen position
+    let tl = myMap.latLngToPixel(meta.latMax, meta.lonMin);
+    let br = myMap.latLngToPixel(meta.latMin, meta.lonMax);
+    
+    // Only draw if we have valid coordinates
+    if (tl && br) {
       image(img, tl.x, tl.y, br.x - tl.x, br.y - tl.y);
     }
+  }
 
     // draw all current strokes from all users on canvas
     strokeWeight(3);
@@ -621,6 +674,10 @@ function touchEnded() {
     width: drawLayer.width, 
     height: drawLayer.height 
   };
+
+    console.log("💾 Saving drawing:", filename);
+  console.log("DataURL length:", dataURL.length);
+  console.log("Bounds:", frozenBounds);
 
   // send png to server for saving
   socket.emit("savePNG", { image: dataURL, meta: meta });
