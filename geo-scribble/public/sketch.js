@@ -162,7 +162,14 @@ function setup() {
   // hide for overlay
   gpsBtn.hide(); 
   gpsBtn.mousePressed(() => {
-    if(mapInit && currentLatitude !== 0 && currentLongitude !== 0){
+    // If GPS not granted yet, request it
+  if (typeof GPS_GRANTED === 'undefined' || !GPS_GRANTED) {
+    if (typeof requestGPS === 'function') {
+      requestGPS();
+    } else {
+      console.error("requestGPS function not found!");
+    }
+  } else if(mapInit && currentLatitude !== 0 && currentLongitude !== 0){
       myMap.map.setView([currentLatitude, currentLongitude], 16);
       if(drawMode){
         setTimeout(() => {
@@ -674,16 +681,7 @@ function unfreezeMap(){
   myMap.map.keyboard.enable();
 }
 
-// handle new gps position from browser
-function handleNewPosition(pos){
-  // convert coordinates for china map and update
-  let lonlat = fixForChineseMap(pos);
-  currentLongitude = lonlat[0];
-  currentLatitude = lonlat[1];
-  if(mapInit) updateMapContent();
-  // tell server about new location
-  socket.emit("updateLocation",{lat:currentLatitude,lng:currentLongitude});
-}
+
 
 // update map when location changes
 function updateMapContent(){
