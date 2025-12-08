@@ -323,12 +323,12 @@ function draw() {
     
     // set up drawing area after short delay
     setTimeout(() => {
-      if(drawMode){
+      if(drawMode && myMao && myMap.map){
         // freeze map for drawing
         freezeMap();
         
         // set drawing boundaries once
-        if(!boundsInitialized){
+        if(!boundsInitialized && myMap){
           // get top-left corner of screen
           let tl = myMap.pixelToLatLng(0,0);
           // get bottom-right corner of screen
@@ -652,7 +652,7 @@ function windowResized(){
 
 // freeze map interactions for draw mode
 function freezeMap(){
-  if(!mapInit) return;
+  if(!mapInit || !myMap || !myMap.map) return;
   // disable all controls
   myMap.map.dragging.disable();
   myMap.map.touchZoom.disable();
@@ -664,7 +664,7 @@ function freezeMap(){
 
 // unfreeze map interactions for view mode
 function unfreezeMap(){
-  if(!mapInit) return;
+  if(!mapInit || !myMap || !myMap.map) return;
   // enable all controls
   myMap.map.dragging.enable();
   myMap.map.touchZoom.enable();
