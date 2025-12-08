@@ -323,7 +323,7 @@ function draw() {
     
     // set up drawing area after short delay
     setTimeout(() => {
-      if(drawMode && myMao && myMap.map){
+      if(drawMode && myMap && myMap.map){
         // freeze map for drawing
         freezeMap();
         
