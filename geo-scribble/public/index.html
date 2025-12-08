@@ -1,60 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-  <link rel="manifest" href="manifest.json" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Geo Scribble</title>
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-<div id="controls">
-  <button id="requestOrientationButton">Request GPS</button>
-</div>
-<div class="main-wrapper">
   <div id="p5-canvas-container"></div>
-</div>
 
-<!-- LOAD IN EXACT ORDER: p5 → mappa → socket.io → GPS → sketch -->
-<script src="lib/p5.js"></script>
-<script src="lib/mappa.js"></script>
-<script src="socket.io/socket.io.js"></script>
-
-<!-- CRITICAL: GPS MUST LOAD BEFORE SKETCH -->
-<script>
-console.log("🔄 1. Loading GPS script...");
-</script>
-<script src="requestgps.js"></script>
-
-<script>
-console.log("🔄 2. GPS script loaded, now loading sketch...");
-</script>
-<script src="sketch.js"></script>
-
-<script>
-// SIMPLE GPS handler - no timing issues
-console.log("🔄 3. All scripts loaded, setting up button...");
-
-const btn = document.getElementById('requestOrientationButton');
-if (btn) {
-    btn.onclick = function() {
-        console.log("📍 GPS button clicked");
-        if (window.requestGPS) {
-            console.log("✅ Calling requestGPS...");
-            requestGPS();
-            btn.style.display = 'none';
-        } else {
-            console.error("❌ requestGPS not found!");
-            console.log("Available: requestGPS =", typeof requestGPS);
-        }
-    };
-    
-    // Auto-click after 1 second
-    setTimeout(() => {
-        console.log("⏱️ Auto-clicking GPS button...");
-        btn.click();
-    }, 1000);
-}
-</script>
+  <!-- LOAD IN ORDER -->
+  <script src="lib/p5.js"></script>
+  <script src="lib/mappa.js"></script>
+  <script src="socket.io/socket.io.js"></script>
+  <script src="requestgps.js"></script>  <!-- GPS FIRST -->
+  <script src="sketch.js"></script>      <!-- SKETCH SECOND -->
 </body>
 </html>
