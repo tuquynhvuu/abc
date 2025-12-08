@@ -16,8 +16,6 @@ window.addEventListener("load", () => {
 });
 
 function requestGPS() {
-    console.log("🔍 requestGPS called");
-    
     if (!navigator.geolocation) {
         alert("Geolocation not supported!");
         return;
@@ -30,17 +28,8 @@ function requestGPS() {
             // first immediate position request
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
-                    console.log("✅ GPS position received");
                     GPS_GRANTED = true;
-                    
-                    // Check if handleNewPosition exists
-                    if (typeof handleNewPosition === 'function') {
-                        handleNewPosition(pos);
-                    } else if (typeof window.handleNewPosition === 'function') {
-                        window.handleNewPosition(pos);
-                    } else {
-                        console.error("❌ handleNewPosition function not found!");
-                    }
+                    handleNewPosition(pos); // update map immediately
 
                     //hide the button permanently after permission is granted
                     let btn = document.getElementById("requestOrientationButton");
@@ -48,13 +37,7 @@ function requestGPS() {
 
                     // start continuous watch
                     navigator.geolocation.watchPosition(
-                        function(pos2) {
-                            if (typeof handleNewPosition === 'function') {
-                                handleNewPosition(pos2);
-                            } else if (typeof window.handleNewPosition === 'function') {
-                                window.handleNewPosition(pos2);
-                            }
-                        },
+                        handleNewPosition,
                         (err) => console.log("GPS error:", err),
                         GPS_options
                     );
@@ -78,12 +61,10 @@ function requestGPS() {
 }
 
 function fixForChineseMap(pos) {
-    if (!pos || !pos.coords) return [0, 0];
-    
+    console.log("fixForChineseMap", pos);
     let lat = pos.coords.latitude;
     let lon = pos.coords.longitude;
-    console.log("Original coordinates:", lat, lon);
-    
+    console.log("fixForChineseMap fixing:", lat, lon);
     return wgs84togcj02(lon, lat);
 }
 
@@ -120,5 +101,3 @@ function transformLng(x, y) {
     ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
     return ret;
 }
-
-console.log("📡 GPS script loaded");
