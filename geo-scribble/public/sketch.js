@@ -143,7 +143,7 @@ function setup() {
     metaList?.forEach(meta => {
       if (!loadedImages[meta.file]) {
         let img = loadImage(
-          "/drawings/" + meta.file,
+          "/tq/port-4260/drawings/" + meta.file,
           function() {
             console.log("✅ Loaded from server:", meta.file);
             loadedImages[meta.file] = img;
@@ -174,7 +174,7 @@ function setup() {
     // Try to load from server
     if (!loadedImages[meta.file]) {
       let img = loadImage(
-        "/drawings/" + meta.file,
+        "/tq/port-4260/drawings/" + meta.file,
         function() {
           console.log("✅ Loaded new image:", meta.file);
           loadedImages[meta.file] = img;
