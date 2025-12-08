@@ -1,19 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Geo Scribble</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+  <link rel="manifest" href="manifest.json" />
+  <title>Project 3</title>
   <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="lib/p5.js"></script>
+  <script src="lib/mappa.js" type="text/javascript"></script>
+  <script src="socket.io/socket.io.js"></script>
 </head>
 <body>
-  <div id="p5-canvas-container"></div>
+<div id="controls">
+  <button id="requestOrientationButton" onclick="requestGPS()">Request GPS</button>
 
-  <!-- LOAD IN ORDER -->
-  <script src="lib/p5.js"></script>
-  <script src="lib/mappa.js"></script>
-  <script src="socket.io/socket.io.js"></script>
-  <script src="requestgps.js"></script>  <!-- GPS FIRST -->
-  <script src="sketch.js"></script>      <!-- SKETCH SECOND -->
+</div>
+<div class="main-wrapper">
+  <div id="p5-canvas-container"></div>
+</div>
+
+  <script src="requestGps.js"></script> 
+  <script src="sketch.js"></script>
 </body>
 </html>

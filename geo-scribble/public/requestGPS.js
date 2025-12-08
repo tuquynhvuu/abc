@@ -1,82 +1,74 @@
-console.log("🚀 GPS SCRIPT LOADING on:", window.location.hostname);
-
 let GPS_GRANTED = false;
 let GPS_options = {
     enableHighAccuracy: false,
-    timeout: 10000,
+    timeout: 5000,
     maximumAge: 0,
 };
 
-// Make functions globally accessible
-window.GPS_GRANTED = GPS_GRANTED;
-window.requestGPS = requestGPS;
-window.fixForChineseMap = fixForChineseMap;
+// center the button when the script loads
+window.addEventListener("load", () => {
+    let btn = document.getElementById("requestOrientationButton");
+    if (btn) {
+        btn.style.position = "absolute";
+        btn.style.left = (window.innerWidth / 2 - btn.offsetWidth / 2) - 10 + "px";
+        btn.style.top = (window.innerHeight / 2 - btn.offsetHeight / 2) + 100 + "px";
+    }
+});
 
 function requestGPS() {
-    console.log("🎯 requestGPS() called");
-    
     if (!navigator.geolocation) {
-        console.error("Geolocation not supported!");
         alert("Geolocation not supported!");
         return;
     }
 
-    // DIRECT GPS REQUEST - skip permissions API
-    navigator.geolocation.getCurrentPosition(
-        function(pos) {
-            console.log("✅ GPS SUCCESS!", pos.coords);
-            GPS_GRANTED = true;
-            window.GPS_GRANTED = true;
-            
-            // Hide button
-            let btn = document.getElementById("requestOrientationButton");
-            if (btn) btn.style.display = 'none';
-            
-            // Call handleNewPosition
-            if (typeof handleNewPosition === 'function') {
-                console.log("📍 Calling handleNewPosition");
-                handleNewPosition(pos);
-            } else {
-                console.error("handleNewPosition not found!");
-            }
-            
-            // Start watching
-            navigator.geolocation.watchPosition(
-                function(pos2) {
-                    if (typeof handleNewPosition === 'function') {
-                        handleNewPosition(pos2);
-                    }
+    navigator.permissions.query({ name: "geolocation" }).then((result) => {
+        console.log(`Permission ${result.state}`);
+
+        if (result.state === "granted" || result.state === "prompt") {
+            // first immediate position request
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    GPS_GRANTED = true;
+                    handleNewPosition(pos); // update map immediately
+
+                    //hide the button permanently after permission is granted
+                    let btn = document.getElementById("requestOrientationButton");
+                    if (btn) btn.style.display = "none";
+
+                    // start continuous watch
+                    navigator.geolocation.watchPosition(
+                        handleNewPosition,
+                        (err) => console.log("GPS error:", err),
+                        GPS_options
+                    );
                 },
-                function(err) {
-                    console.log("GPS watch error:", err);
+                (err) => {
+                    console.log("GPS error:", err);
+                    alert("Error getting GPS: " + err.message);
                 },
                 GPS_options
             );
-        },
-        function(err) {
-            console.log("❌ GPS ERROR:", err.code, err.message);
-            alert("GPS failed: " + err.message);
-        },
-        GPS_options
-    );
+        } else if (result.state === "denied") {
+            alert("GPS access denied!");
+        }
+
+        // listen for permission changes
+        result.onchange = () => {
+            console.log(`Permission changed to ${result.state}`);
+            if (result.state === "granted") requestGPS();
+        };
+    });
 }
 
 function fixForChineseMap(pos) {
-    if (!pos || !pos.coords) return [0, 0];
-    
+    console.log("fixForChineseMap", pos);
     let lat = pos.coords.latitude;
     let lon = pos.coords.longitude;
-    console.log("Original coordinates:", lat, lon);
-    
-    // Use conversion if available
-    if (typeof wgs84togcj02 === 'function') {
-        return wgs84togcj02(lon, lat);
-    }
-    
-    return [lon, lat];
+    console.log("fixForChineseMap fixing:", lat, lon);
+    return wgs84togcj02(lon, lat);
 }
 
-// Conversion functions
+// Convert WGS-84 → GCJ-02 (China maps)
 function wgs84togcj02(lng, lat) {
     if (outOfChina(lng, lat)) return [lng, lat];
     const a = 6378245.0, ee = 0.00669342162296594323;
@@ -109,5 +101,3 @@ function transformLng(x, y) {
     ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
     return ret;
 }
-
-console.log("📡 GPS ready! requestGPS =", typeof requestGPS);
