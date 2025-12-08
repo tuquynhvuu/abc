@@ -8,35 +8,35 @@ let GPS_options = {
 // Make it globally accessible
 window.requestGPS = function() {
   navigator.permissions.query({ name: "geolocation" }).then((result) => {
+    console.log(`Permission ${result.state}`);
+
     if (result.state === "granted") {
-      report(result.state);
-      console.log("ready");
       GPS_GRANTED = true;
+      console.log("GPS ready");
       
       // Start watching position
       navigator.geolocation.watchPosition(
         function(pos) {
-          console.log("GPS update received");
-          // Call the global handleNewPosition if it exists
+          console.log("GPS position update (granted)");
+          // Call the global function
           if (typeof window.handleNewPosition === 'function') {
             window.handleNewPosition(pos);
           }
         }, 
         function(error){
-          console.log("ERRROR GPS:", error)
+          console.log("ERROR GPS:", error)
         }, 
         GPS_options
       );
       
     } else if (result.state === "prompt") {
-      report(result.state);
-      console.log("ready");
-      
-      // Request position first
+      // Request permission
       navigator.geolocation.getCurrentPosition(
         function(pos) {
           GPS_GRANTED = true;
-          // Call the global handleNewPosition if it exists
+          console.log("GPS ready");
+          
+          // Call the global function
           if (typeof window.handleNewPosition === 'function') {
             window.handleNewPosition(pos);
           }
@@ -49,24 +49,26 @@ window.requestGPS = function() {
               }
             }, 
             function(error){
-              console.log("ERRROR GPS:", error)
+              console.log("ERROR GPS:", error)
             }, 
             GPS_options
           );
         },
         function(error) {
           console.log("GPS permission denied:", error);
+          GPS_GRANTED = false;
         },
         GPS_options
       );
       
     } else if (result.state === "denied") {
-      report(result.state);
-      alert("GPS access denied. Please enable location services in your browser settings.");
+      console.log("GPS access denied!");
+      GPS_GRANTED = false;
+      alert("GPS access denied! Please enable location services.");
     }
     
     result.addEventListener("change", () => {
-      report(result.state);
+      console.log(`Permission changed to ${result.state}`);
       if (result.state === "granted") {
         GPS_GRANTED = true;
         navigator.geolocation.watchPosition(
@@ -76,17 +78,13 @@ window.requestGPS = function() {
             }
           }, 
           function(error){
-            console.log("ERRROR GPS:", error)
+            console.log("ERROR GPS:", error)
           }, 
           GPS_options
         );
       }
     });
   });
-}
-
-function report(state) {
-  console.log(`Permission ${state}`);
 }
 
 // Make these functions globally accessible
@@ -131,5 +129,4 @@ function transformLng(x, y){
   return ret;
 }
 
-// Log that GPS script loaded
-console.log("GPS script loaded - requestGPS available");
+console.log("GPS script loaded");
