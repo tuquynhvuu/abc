@@ -143,7 +143,7 @@ function setup() {
     metaList?.forEach(meta => {
       if (!loadedImages[meta.file]) {
         let img = loadImage(
-          "/tq/port-4260/drawings/" + meta.file,
+          "drawings/" + meta.file,
           function() {
             console.log("✅ Loaded from server:", meta.file);
             loadedImages[meta.file] = img;
@@ -174,7 +174,7 @@ function setup() {
     // Try to load from server
     if (!loadedImages[meta.file]) {
       let img = loadImage(
-        "/tq/port-4260/drawings/" + meta.file,
+        "drawings/" + meta.file,
         function() {
           console.log("✅ Loaded new image:", meta.file);
           loadedImages[meta.file] = img;
@@ -786,6 +786,30 @@ function updateMapContent(){
   // update user marker target position
   me.goalX = myPosOnCanvas.x;
   me.goalY = myPosOnCanvas.y;
+}
+
+
+// Add these functions to handle mobile touch properly
+function touchStarted() {
+  // This prevents default touch behavior and allows drawing
+  if (showStartScreen) {
+    showStartScreen = false;
+    for (let btn of controlButtons) {
+      btn.show();
+    }
+  }
+  return false; // Prevent default
+}
+
+// Also ensure mousePressed works for both desktop and mobile
+function mousePressed() {
+  if (showStartScreen) {
+    showStartScreen = false;
+    for (let btn of controlButtons) {
+      btn.show();
+    }
+  }
+  return false;
 }
 
 // user location marker class
