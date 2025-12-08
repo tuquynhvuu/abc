@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+  
+  <link rel="manifest" href="manifest.json" />
+  <title>Memory Backpack Space</title>
+
+  <link rel="stylesheet" type="text/css" href="style.css">
+
+  <!-- include socket.io library: -->
+  <script src="socket.io/socket.io.js"></script>  
+
+</head>
+
+<body>
+
+  <canvas id="spaceCanvas"></canvas>
+
+  <div class="ui-wrapper">
+      <!-- Doodle Input Canvas -->
+      <div id="doodleWrapper">
+          <canvas id="doodleCanvas"></canvas>
+          <p>Draw your doodle here!</p>
+      </div>
+
+      <!-- Message Input -->
+      <div id="messageWrapper">
+          <form id="chatForm">
+              <input id="newMessage" placeholder="Type a message" autocomplete="off" />
+              <button type="submit">Send</button>
+          </form>
+      </div>
+
+      <!-- User Name Input fixed at bottom -->
+      <div id="nameWrapper">
+          <input type="text" id="nameInput" maxlength="16" placeholder="Your Name">
+          <p>Your name!</p>
+      </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>

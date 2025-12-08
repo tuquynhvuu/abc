@@ -110,7 +110,7 @@ io.on('connection', (socket) => {
         if (dist < 20) {
           if (block.owner !== player.team) {
             block.owner = player.team;
-            console.log(`🏁 Territory "${id}" captured by team ${player.team.toUpperCase()}`);
+            console.log(`🏁Territory "${id}" captured by team ${player.team.toUpperCase()}`);
             io.emit("territoriesUpdate", territories); // update everyone
           }
         }

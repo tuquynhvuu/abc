@@ -1,0 +1,48 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  color: white;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+.main-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+#p5-canvas-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  z-index: 1; /* below buttons */
+}
+
+button {
+  z-index: 10;
+  background-color: #00c3ff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #008acb;
+}
+
+/* container for buttons */
+#controls {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 15; /* above map */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
