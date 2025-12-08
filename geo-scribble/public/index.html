@@ -12,8 +12,9 @@
 </head>
 <body>
 <div id="controls">
-  <button id="requestOrientationButton" onclick="requestGPS()">Request GPS</button>
-
+<button id="requestOrientationButton" onclick="if(typeof requestGPS !== 'undefined') requestGPS(); else alert('GPS script loading...');">
+    Request GPS
+</button>
 </div>
 <div class="main-wrapper">
   <div id="p5-canvas-container"></div>

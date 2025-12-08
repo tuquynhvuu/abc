@@ -1,67 +1,75 @@
-let GPS_GRANTED = false;
-let GPS_options = {
-    enableHighAccuracy: false,
-    timeout: 5000,
+// GPS Module for GEO-SCRIBBLE
+window.GPS_GRANTED = false;
+window.GPS_options = {
+    enableHighAccuracy: true,
+    timeout: 10000,
     maximumAge: 0,
 };
 
-// center the button when the script loads
-window.addEventListener("load", () => {
-    let btn = document.getElementById("requestOrientationButton");
-    if (btn) {
-        btn.style.position = "absolute";
-        btn.style.left = (window.innerWidth / 2 - btn.offsetWidth / 2) - 10 + "px";
-        btn.style.top = (window.innerHeight / 2 - btn.offsetHeight / 2) + 100 + "px";
-    }
-});
-
-function requestGPS() {
+// Make this function globally accessible
+window.requestGPS = function() {
+    console.log("requestGPS called");
+    
     if (!navigator.geolocation) {
-        alert("Geolocation not supported!");
+        alert("Geolocation is not supported by your browser.");
         return;
     }
 
-    navigator.permissions.query({ name: "geolocation" }).then((result) => {
-        console.log(`Permission ${result.state}`);
-
-        if (result.state === "granted" || result.state === "prompt") {
-            // first immediate position request
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    GPS_GRANTED = true;
-                    handleNewPosition(pos); // update map immediately
-
-                    //hide the button permanently after permission is granted
-                    let btn = document.getElementById("requestOrientationButton");
-                    if (btn) btn.style.display = "none";
-
-                    // start continuous watch
-                    navigator.geolocation.watchPosition(
-                        handleNewPosition,
-                        (err) => console.log("GPS error:", err),
-                        GPS_options
-                    );
+    navigator.geolocation.getCurrentPosition(
+        // Success callback
+        function(position) {
+            console.log("GPS permission granted!");
+            GPS_GRANTED = true;
+            
+            // Convert coordinates for Chinese map
+            let lonlat = fixForChineseMap(position);
+            // Update global variables for sketch.js to use
+            if (typeof currentLongitude !== 'undefined') currentLongitude = lonlat[0];
+            if (typeof currentLatitude !== 'undefined') currentLatitude = lonlat[1];
+            
+            console.log("Updated position:", currentLatitude, currentLongitude);
+            
+            // Hide the GPS button
+            let btn = document.getElementById("requestOrientationButton");
+            if (btn) btn.style.display = "none";
+            
+            // Call a global position handler if it exists
+            if (typeof window.handleNewPosition === 'function') {
+                window.handleNewPosition(position);
+            }
+            
+            // Start watching for position updates
+            navigator.geolocation.watchPosition(
+                function(pos) {
+                    let newLonlat = fixForChineseMap(pos);
+                    if (typeof currentLongitude !== 'undefined') currentLongitude = newLonlat[0];
+                    if (typeof currentLatitude !== 'undefined') currentLatitude = newLonlat[1];
+                    console.log("Position updated:", currentLatitude, currentLongitude);
+                    
+                    if (typeof window.handleNewPosition === 'function') {
+                        window.handleNewPosition(pos);
+                    }
                 },
-                (err) => {
-                    console.log("GPS error:", err);
-                    alert("Error getting GPS: " + err.message);
+                function(err) {
+                    console.log("GPS watch error:", err);
                 },
                 GPS_options
             );
-        } else if (result.state === "denied") {
-            alert("GPS access denied!");
-        }
+        },
+        // Error callback
+        function(error) {
+            console.log("GPS error:", error);
+            GPS_GRANTED = false;
+            alert("Could not get your location. Please enable location services.");
+        },
+        GPS_options
+    );
+};
 
-        // listen for permission changes
-        result.onchange = () => {
-            console.log(`Permission changed to ${result.state}`);
-            if (result.state === "granted") requestGPS();
-        };
-    });
-}
-
+// Coordinate conversion functions (keep your existing ones)
 function fixForChineseMap(pos) {
     console.log("fixForChineseMap", pos);
+    if (!pos || !pos.coords) return [0, 0];
     let lat = pos.coords.latitude;
     let lon = pos.coords.longitude;
     console.log("fixForChineseMap fixing:", lat, lon);
@@ -101,3 +109,17 @@ function transformLng(x, y) {
     ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
     return ret;
 }
+
+// Auto-center button on load
+window.addEventListener("load", () => {
+    let btn = document.getElementById("requestOrientationButton");
+    if (btn) {
+        btn.style.position = "absolute";
+        btn.style.left = (window.innerWidth / 2 - btn.offsetWidth / 2) - 10 + "px";
+        btn.style.top = (window.innerHeight / 2 - btn.offsetHeight / 2) + 100 + "px";
+    }
+    console.log("GPS script loaded - requestGPS available:", typeof requestGPS !== 'undefined');
+});
+
+// Make the function globally accessible via window object
+window.requestGPS = window.requestGPS || requestGPS;

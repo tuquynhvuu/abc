@@ -90,6 +90,36 @@ let hideAll = false;
 
 function preload() {}
 
+// Make handleNewPosition globally accessible for GPS script
+window.handleNewPosition = function(pos) {
+    console.log("handleNewPosition called from GPS script");
+    
+    if (pos && pos.coords) {
+        // Convert coordinates (GPS script already did this, but just in case)
+        let lonlat;
+        if (typeof fixForChineseMap === 'function') {
+            lonlat = fixForChineseMap(pos);
+        } else {
+            // Fallback
+            lonlat = [pos.coords.longitude, pos.coords.latitude];
+        }
+        
+        currentLongitude = lonlat[0];
+        currentLatitude = lonlat[1];
+        
+        console.log("Location updated in sketch:", currentLatitude, currentLongitude);
+        
+        if(mapInit) {
+            updateMapContent();
+        }
+        
+        // Tell server about new location
+        if (socket) {
+            socket.emit("updateLocation", {lat: currentLatitude, lng: currentLongitude});
+        }
+    }
+};
+
 function setup() {
 
   
