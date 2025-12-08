@@ -5,13 +5,15 @@ const path = require("path");
 const app = express();
 const portHTTPS = 4260;
 
-// serve public folder
-app.use(express.static('public'));
 
 // ensure drawings folder exists for saving pngs
 const DRAWINGS_DIR = path.join(__dirname, "public", "drawings");
 if (!fs.existsSync(DRAWINGS_DIR)) fs.mkdirSync(DRAWINGS_DIR, { recursive: true });
 
+// serve public folder
+app.use(express.static('public'));
+// In server.js, add this line:
+app.use('/drawings', express.static(DRAWINGS_DIR));
 // draw-data.json path
 const DATA_JSON = path.join(__dirname, "draw-data.json");
 let drawData = [];
