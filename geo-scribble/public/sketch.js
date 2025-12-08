@@ -4,10 +4,40 @@ let myMap;
 let canvas;
 
 // gps and user location 
+// gps and user location 
 let currentLatitude = 0;
 let currentLongitude = 0;
 let mapInit = false;
 let me;
+
+// ADD THIS: Make sure handleNewPosition exists globally
+if (typeof handleNewPosition === 'undefined') {
+    window.handleNewPosition = function(pos) {
+        console.log("📍 GPS position received");
+        
+        // Convert coordinates if function exists
+        let lonlat;
+        if (typeof fixForChineseMap === 'function') {
+            lonlat = fixForChineseMap(pos);
+        } else {
+            lonlat = [pos.coords.longitude, pos.coords.latitude];
+        }
+        
+        currentLongitude = lonlat[0];
+        currentLatitude = lonlat[1];
+        GPS_GRANTED = true;
+        
+        console.log("Updated location:", currentLatitude, currentLongitude);
+        
+        if(mapInit) {
+            updateMapContent();
+        }
+        
+        if (socket) {
+            socket.emit("updateLocation", {lat: currentLatitude, lng: currentLongitude});
+        }
+    };
+}
 
 // drawing variables 
 let drawMode = true; 
@@ -201,27 +231,22 @@ function setup() {
   locBtn.style('font-size','10px');
   // hide for overlay
   locBtn.hide(); 
-  locBtn.mousePressed(() => {
-    // If GPS not granted yet, request it
-    if (!GPS_GRANTED) {
-      if (typeof requestGPS === 'function') {
-        requestGPS();
-      } else {
-        console.error("requestGPS function not found! Make sure requestgps.js is loaded.");
-      }
-    } else if(mapInit && currentLatitude !== 0 && currentLongitude !== 0){
-      // Center map on user location
-      myMap.map.setView([currentLatitude, currentLongitude], 16);
-      if(drawMode){
-        setTimeout(() => {
-          freezeMap();
-        }, 100);
-      }
-    } else {
-      // GPS granted but no location yet or map not ready
-      console.log("Waiting for GPS location or map initialization...");
+locBtn.mousePressed(() => {
+    if (!GPS_GRANTED || currentLatitude === 0 || currentLongitude === 0) {
+        // Request GPS if not already done
+        if (typeof requestGPS === 'function') {
+            requestGPS();
+        }
+    } else if(mapInit) {
+        // Center map on user location
+        myMap.map.setView([currentLatitude, currentLongitude], 16);
+        if(drawMode){
+            setTimeout(() => {
+                freezeMap();
+            }, 100);
+        }
     }
-  });
+});
   controlButtons.push(locBtn);
 
   // button to switch modes
@@ -348,12 +373,13 @@ function setup() {
   socket.emit("joinUser");
   
   // Auto-request GPS when sketch loads (after a short delay)
-  setTimeout(() => {
-    if (!GPS_GRANTED && typeof requestGPS === 'function') {
-      console.log("Auto-requesting GPS...");
-      requestGPS();
+// In setup() function, replace the auto-request section with:
+setTimeout(() => {
+    console.log("Auto-starting GPS...");
+    if (typeof requestGPS === 'function') {
+        requestGPS();
     }
-  }, 1000);
+}, 1000);
 
   // In setup(), after canvas creation:
 console.log("=== DEBUG INFO ===");
@@ -603,10 +629,9 @@ function mousePressed() {
     for (let btn of controlButtons) {
       btn.show();
     }
-    // Auto-request GPS when user clicks start screen
+    // Simple GPS request when starting
     setTimeout(() => {
-      // FIX: Use typeof check to avoid reference error
-      if (typeof GPS_GRANTED !== 'undefined' && !GPS_GRANTED && typeof requestGPS === 'function') {
+      if (typeof requestGPS === 'function') {
         requestGPS();
       }
     }, 300);
