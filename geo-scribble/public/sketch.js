@@ -100,7 +100,7 @@ window.handleNewPosition = function(pos) {
         if (typeof fixForChineseMap === 'function') {
             lonlat = fixForChineseMap(pos);
         } else {
-            // Fallback
+            //  Fallback
             lonlat = [pos.coords.longitude, pos.coords.latitude];
         }
         
@@ -372,7 +372,8 @@ function draw() {
   hueSliderY = windowHeight - 60; 
 
   // if map not ready, but gps granted and location available
-  if(!mapInit && GPS_GRANTED && currentLongitude != 0){
+  // FIX: Use typeof check to avoid reference error if GPS script hasn't loaded
+  if(!mapInit && (typeof GPS_GRANTED !== 'undefined' && GPS_GRANTED) && currentLongitude != 0){
     // set map to user location
     mappa_options.lat = currentLatitude;
     mappa_options.lng = currentLongitude;
@@ -579,7 +580,8 @@ function mousePressed() {
     }
     // Auto-request GPS when user clicks start screen
     setTimeout(() => {
-      if (!GPS_GRANTED && typeof requestGPS === 'function') {
+      // FIX: Use typeof check to avoid reference error
+      if (typeof GPS_GRANTED !== 'undefined' && !GPS_GRANTED && typeof requestGPS === 'function') {
         requestGPS();
       }
     }, 300);

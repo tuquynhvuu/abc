@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
   <link rel="manifest" href="manifest.json" />
-  <title>Project 3</title>
+  <title>Geo Scribble</title>
   <link rel="stylesheet" type="text/css" href="style.css">
   <script src="lib/p5.js"></script>
   <script src="lib/mappa.js" type="text/javascript"></script>
@@ -12,15 +12,39 @@
 </head>
 <body>
 <div id="controls">
-<button id="requestOrientationButton" onclick="if(typeof requestGPS !== 'undefined') requestGPS(); else alert('GPS script loading...');">
-    Request GPS
-</button>
+  <button id="requestOrientationButton">Request GPS</button>
 </div>
 <div class="main-wrapper">
   <div id="p5-canvas-container"></div>
 </div>
 
-  <script src="requestgps.js"></script> 
-  <script src="sketch.js"></script>
+<script>
+// Safe button handler
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('requestOrientationButton');
+    if (btn) {
+        btn.onclick = function() {
+            if (typeof requestGPS === 'function') {
+                console.log("Calling requestGPS...");
+                requestGPS();
+            } else {
+                console.log("GPS script still loading...");
+                btn.textContent = "Loading GPS...";
+                // Try again in 1 second
+                setTimeout(function() {
+                    if (typeof requestGPS === 'function') {
+                        requestGPS();
+                    } else {
+                        btn.textContent = "GPS Error - Refresh";
+                    }
+                }, 1000);
+            }
+        };
+    }
+});
+</script>
+
+<script src="requestgps.js"></script> 
+<script src="sketch.js"></script>
 </body>
 </html>
