@@ -26,7 +26,7 @@ let controlButtons = [];
 let undoBtn;
 let modeBtn; 
 let hideBtn; 
-let gpsBtn; 
+let locBtn;  // Changed from gpsBtn to locBtn
 let clearMineBtn; 
 let clearAllBtn; 
 
@@ -91,6 +91,8 @@ let hideAll = false;
 function preload() {}
 
 function setup() {
+
+  
   canvas = createCanvas(windowWidth, windowHeight);
   canvas.parent("p5-canvas-container");
 
@@ -103,6 +105,14 @@ function setup() {
   // starting color w transparency to see map
   myColor = color(0, 100, 100, 0.5); 
   me = new MyPoint();
+
+  // Ensure GPS_GRANTED is defined even if GPS script loads late
+  if (typeof GPS_GRANTED === 'undefined') {
+    window.GPS_GRANTED = false;
+  }
+    console.log("GPS_GRANTED exists?", typeof GPS_GRANTED !== 'undefined');
+  console.log("requestGPS function exists?", typeof requestGPS === 'function');
+  console.log("handleNewPosition function exists?", typeof handleNewPosition === 'function');
 
   // load all images from server 
   function reloadImages(metaList) {
@@ -149,36 +159,40 @@ function setup() {
     }
   });
 
-  // button to center on user location (old gps button)
-  gpsBtn = createButton("my location");
-  gpsBtn.position(20, 70);
-  gpsBtn.style('z-index','10');
-  gpsBtn.style('background-color','#2196F3');
-  gpsBtn.style('color','white');
-  gpsBtn.style('border-radius','10px');
-  gpsBtn.style('padding','8px 10px');
-  gpsBtn.style('font-family','monospace');
-  gpsBtn.style('font-size','10px');
+  // button to center on user location (renamed from gpsBtn to locBtn)
+  locBtn = createButton("my location");
+  locBtn.position(20, 70);
+  locBtn.style('z-index','10');
+  locBtn.style('background-color','#2196F3');
+  locBtn.style('color','white');
+  locBtn.style('border-radius','10px');
+  locBtn.style('padding','8px 10px');
+  locBtn.style('font-family','monospace');
+  locBtn.style('font-size','10px');
   // hide for overlay
-  gpsBtn.hide(); 
-  gpsBtn.mousePressed(() => {
+  locBtn.hide(); 
+  locBtn.mousePressed(() => {
     // If GPS not granted yet, request it
-  if (typeof GPS_GRANTED === 'undefined' || !GPS_GRANTED) {
-    if (typeof requestGPS === 'function') {
-      requestGPS();
-    } else {
-      console.error("requestGPS function not found!");
-    }
-  } else if(mapInit && currentLatitude !== 0 && currentLongitude !== 0){
+    if (!GPS_GRANTED) {
+      if (typeof requestGPS === 'function') {
+        requestGPS();
+      } else {
+        console.error("requestGPS function not found! Make sure requestgps.js is loaded.");
+      }
+    } else if(mapInit && currentLatitude !== 0 && currentLongitude !== 0){
+      // Center map on user location
       myMap.map.setView([currentLatitude, currentLongitude], 16);
       if(drawMode){
         setTimeout(() => {
           freezeMap();
         }, 100);
       }
+    } else {
+      // GPS granted but no location yet or map not ready
+      console.log("Waiting for GPS location or map initialization...");
     }
   });
-  controlButtons.push(gpsBtn);
+  controlButtons.push(locBtn);
 
   // button to switch modes
   modeBtn = createButton("switch to view mode");
@@ -302,18 +316,33 @@ function setup() {
 
   // tell server you joined
   socket.emit("joinUser");
+  
+  // Auto-request GPS when sketch loads (after a short delay)
+  setTimeout(() => {
+    if (!GPS_GRANTED && typeof requestGPS === 'function') {
+      console.log("Auto-requesting GPS...");
+      requestGPS();
+    }
+  }, 1000);
 }
 
 function draw() {
   // clear canvas each frame
   clear();
 
+  // Debug GPS status periodically
+  if (frameCount % 180 === 0) { // Log every 3 seconds
+    console.log("GPS Status - GPS_GRANTED:", GPS_GRANTED,
+               "Lat:", currentLatitude, "Lon:", currentLongitude,
+               "MapInit:", mapInit);
+  }
+
   // fixed pos for hue slider 
   hueSliderX = 20;
   hueSliderY = windowHeight - 60; 
 
   // if map not ready, but gps granted and location available
-  if(!mapInit && typeof GPS_GRANTED !== 'undefined' && GPS_GRANTED && currentLongitude != 0){
+  if(!mapInit && GPS_GRANTED && currentLongitude != 0){
     // set map to user location
     mappa_options.lat = currentLatitude;
     mappa_options.lng = currentLongitude;
@@ -518,6 +547,12 @@ function mousePressed() {
     for (let btn of controlButtons) {
       btn.show();
     }
+    // Auto-request GPS when user clicks start screen
+    setTimeout(() => {
+      if (!GPS_GRANTED && typeof requestGPS === 'function') {
+        requestGPS();
+      }
+    }, 300);
   }
 }
 
@@ -643,7 +678,7 @@ function windowResized(){
   
   // Reposition all buttons on resize
   for (let btn of controlButtons) {
-    if (btn === gpsBtn) {
+    if (btn === locBtn) {  // Changed from gpsBtn to locBtn
       btn.position(20, 70);
     } else if (btn === modeBtn) {
       btn.position(20, 20);
@@ -681,15 +716,20 @@ function unfreezeMap(){
   myMap.map.keyboard.enable();
 }
 
-
-
 // update map when location changes
 function updateMapContent(){
   // convert gps to screen position
-  let myPosOnCanvas = myMap.latLngToPixel(currentLatitude,currentLongitude);
-  // update user marker target position
-  me.goalX = myPosOnCanvas.x;
-  me.goalY = myPosOnCanvas.y;
+  if (currentLatitude !== 0 && currentLongitude !== 0) {
+    let myPosOnCanvas = myMap.latLngToPixel(currentLatitude, currentLongitude);
+    // update user marker target position
+    me.goalX = myPosOnCanvas.x;
+    me.goalY = myPosOnCanvas.y;
+    
+    // Send location to server
+    if (socket) {
+      socket.emit("updateLocation", {lat: currentLatitude, lng: currentLongitude});
+    }
+  }
 }
 
 // user location marker class
