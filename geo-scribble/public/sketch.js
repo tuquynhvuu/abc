@@ -88,12 +88,11 @@ let loadedImages = {};
 // hide drawings from other users
 let hideAll = false;
 
-// Local storage fallback
-let localDrawingsData = {};
-
 function preload() {}
 
 function setup() {
+  console.log("🎨 Sketch setup starting...");
+  
   canvas = createCanvas(windowWidth, windowHeight);
   canvas.parent("p5-canvas-container");
 
@@ -107,52 +106,51 @@ function setup() {
   myColor = color(0, 100, 100, 0.5); 
   me = new MyPoint();
 
-  // Load any drawings stored in localStorage as fallback
-  loadLocalDrawingsFallback();
+  // Load any existing drawings from localStorage
+  try {
+    let saved = localStorage.getItem('geoDrawings');
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      imagesMeta = parsed.meta || [];
+      
+      // Try to create images from dataURLs
+      parsed.images?.forEach(item => {
+        if (item.dataURL && item.meta) {
+          let img = createImg(item.dataURL, item.meta.file);
+          img.hide();
+          loadedImages[item.meta.file] = img;
+        }
+      });
+      console.log("📂 Loaded", imagesMeta.length, "drawings from localStorage");
+    }
+  } catch (e) {
+    console.log("⚠️ Could not load from localStorage:", e.message);
+  }
 
   // load all images from server 
   function reloadImages(metaList) {
-    console.log("🔄 Loading images from server. Count:", metaList?.length || 0);
+    console.log("🔄 Server sent", metaList?.length || 0, "image metadata");
     
-    // Store server metadata
-    imagesMeta = metaList || [];
-    // Don't clear loadedImages - keep what we have
+    // Keep local images, add server metadata
+    let localFiles = imagesMeta.map(m => m.file);
+    metaList?.forEach(meta => {
+      if (!localFiles.includes(meta.file)) {
+        imagesMeta.push(meta);
+      }
+    });
     
-    imagesMeta.forEach((m, index) => {
-      console.log(`  ${index + 1}. ${m.file} (by ${m.userId})`);
-      
-      // Only try to load if not already loaded
-      if (!loadedImages[m.file]) {
-        let imageUrl = '/drawings/' + m.file;
-        
-        // Try to load from server
+    // Try to load from server (but don't crash if it fails)
+    metaList?.forEach(meta => {
+      if (!loadedImages[meta.file]) {
         let img = loadImage(
-          imageUrl,
+          "/drawings/" + meta.file,
           function() {
-            console.log(`    ✅ Loaded from server: ${m.file}`);
-            loadedImages[m.file] = img;
-            
-            // Also store in localStorage as fallback
-            if (img && img.canvas) {
-              let dataURL = img.canvas.toDataURL('image/png');
-              localDrawingsData[m.file] = {
-                dataURL: dataURL,
-                meta: m,
-                timestamp: Date.now()
-              };
-              saveLocalDrawings();
-            }
+            console.log("✅ Loaded from server:", meta.file);
+            loadedImages[meta.file] = img;
           },
           function(err) {
-            console.log(`    ❌ Server load failed: ${m.file}`);
-            
-            // Try localStorage fallback
-            if (localDrawingsData[m.file]) {
-              console.log(`    🔄 Trying localStorage fallback for: ${m.file}`);
-              let fallbackImg = createImg(localDrawingsData[m.file].dataURL, 'fallback');
-              fallbackImg.hide();
-              loadedImages[m.file] = fallbackImg;
-            }
+            console.log("⚠️ Could not load from server:", meta.file);
+            // Don't crash - just skip
           }
         );
       }
@@ -166,45 +164,23 @@ function setup() {
 
   // when new image is saved by anyone
   socket.on("newImage", (meta) => {
-    console.log("📸 Server says new image:", meta.file);
+    console.log("📸 New image notification:", meta.file);
     
-    // Check if already exists
-    if (imagesMeta.find(m => m.file === meta.file)) {
-      console.log("  ⚠️ Already have this image");
-      return;
+    // Add to metadata
+    if (!imagesMeta.find(m => m.file === meta.file)) {
+      imagesMeta.push(meta);
     }
-    
-    imagesMeta.push(meta);
     
     // Try to load from server
     if (!loadedImages[meta.file]) {
       let img = loadImage(
-        '/drawings/' + meta.file,
+        "/drawings/" + meta.file,
         function() {
-          console.log(`  ✅ Loaded new image: ${meta.file}`);
+          console.log("✅ Loaded new image:", meta.file);
           loadedImages[meta.file] = img;
-          
-          // Store in localStorage
-          if (img && img.canvas) {
-            let dataURL = img.canvas.toDataURL('image/png');
-            localDrawingsData[meta.file] = {
-              dataURL: dataURL,
-              meta: meta,
-              timestamp: Date.now()
-            };
-            saveLocalDrawings();
-          }
         },
         function(err) {
-          console.log(`  ❌ Failed to load new image: ${meta.file}`);
-          
-          // Check localStorage
-          if (localDrawingsData[meta.file]) {
-            console.log(`  🔄 Using localStorage version`);
-            let fallbackImg = createImg(localDrawingsData[meta.file].dataURL, 'fallback');
-            fallbackImg.hide();
-            loadedImages[meta.file] = fallbackImg;
-          }
+          console.log("⚠️ Could not load new image (server may not have saved it yet):", meta.file);
         }
       );
     }
@@ -215,8 +191,6 @@ function setup() {
     imagesMeta = imagesMeta.filter(m => m.file !== filename);
     delete loadedImages[filename];
     drawings = drawings.filter(d => d.file !== filename);
-    delete localDrawingsData[filename];
-    saveLocalDrawings();
   });
 
   // when server sends all drawing lines
@@ -304,24 +278,6 @@ function setup() {
   clearMineBtn.mousePressed(() => { 
     socket.emit("clearMyImages", myUserId); 
     drawings = drawings.filter(d => d.userId !== myUserId);
-    
-    // Clear from imagesMeta and loadedImages
-    imagesMeta = imagesMeta.filter(m => m.userId !== myUserId);
-    Object.keys(loadedImages).forEach(key => {
-      let meta = imagesMeta.find(m => m.file === key);
-      if (!meta || meta.userId !== myUserId) {
-        delete loadedImages[key];
-      }
-    });
-    
-    // Clear from localStorage
-    Object.keys(localDrawingsData).forEach(key => {
-      if (localDrawingsData[key].meta.userId === myUserId) {
-        delete localDrawingsData[key];
-      }
-    });
-    saveLocalDrawings();
-    
     currentStroke = [];
     drawLayer.clear();
   });
@@ -339,15 +295,12 @@ function setup() {
   clearAllBtn.style('font-size','10px');
   clearAllBtn.style('font-weight','bold');
   clearAllBtn.hide(); 
-  
   clearAllBtn.mousePressed(() => { 
     if(confirm("WARNING: this will delete ALL drawings from EVERYONE, including your own. Are you sure?")) {
       socket.emit("clearAllImages"); 
       drawings = [];
       imagesMeta = [];
       loadedImages = {};
-      localDrawingsData = {};
-      localStorage.removeItem('geoDrawingsFallback');
       currentStroke = [];
       drawLayer.clear();
     }
@@ -398,6 +351,8 @@ function setup() {
 
   // tell server you joined
   socket.emit("joinUser");
+  
+  console.log("✅ Sketch setup complete");
 }
 
 function draw() {
@@ -410,21 +365,19 @@ function draw() {
 
   // if map not ready, but gps granted and location available
   if(!mapInit && typeof GPS_GRANTED !== 'undefined' && GPS_GRANTED && currentLongitude != 0){
-    // set map to user location
+    console.log("🗺️ Creating map with location:", currentLatitude, currentLongitude);
+    
     mappa_options.lat = currentLatitude;
     mappa_options.lng = currentLongitude;
     mappa_options.subdomains = "1234";
 
-    // create the map
     myMap = mappa.tileMap(mappa_options);
-
-    // overlay canvas on map
     myMap.overlay(canvas);
-    // update when map moves
     myMap.onChange(updateMapContent);
     mapInit = true;
     
-    // set up drawing area after short delay
+    console.log("✅ Map created");
+    
     setTimeout(() => {
       if(drawMode && myMap && myMap.map){
         // freeze map for drawing
@@ -440,6 +393,7 @@ function draw() {
           frozenBounds = {latMax: tl.lat, latMin: br.lat, lonMin: tl.lng, lonMax: br.lng};
           // boundaries are now set
           boundsInitialized = true;
+          console.log("📐 Drawing boundaries set");
         }
       }
     }, 100);
@@ -455,7 +409,7 @@ function draw() {
     for (let meta of imagesMeta) {
       let img = loadedImages[meta.file];
       
-      // Skip if no image or image not ready
+      // Skip if no image
       if (!img) continue;
       
       // Check if image is loaded
@@ -516,6 +470,7 @@ function draw() {
       drawLayer.beginShape();
       // add each point in current stroke
       for(let p of currentStroke) drawLayer.vertex(p.x, p.y);
+      // Use CLOSE parameter instead of just endShape()
       drawLayer.endShape();
     }
     
@@ -623,7 +578,6 @@ function drawStartScreen() {
   // switch back to hsb for drawing
   colorMode(HSB, 360, 100, 100, 1);
   
-  // restore drawing state
   pop();
 }
 
@@ -640,7 +594,6 @@ function mousePressed() {
 // draw the rainbow color stroke slider
 function drawRainbowSlider() {
   push();
-  translate(0, 0);
   noStroke();
   for (let i = 0; i < hueSliderWidth; i++) {
     // calculate hue for pos
@@ -737,27 +690,37 @@ function touchEnded() {
   };
 
   console.log("💾 Saving drawing:", filename);
-  console.log("DataURL length:", dataURL.length);
 
-  // Also store locally immediately so we can see it
-  let localImg = createImg(dataURL, filename);
-  localImg.hide();
-  loadedImages[filename] = localImg;
+  // Create and store image locally immediately
+  let img = createImg(dataURL, filename);
+  img.hide();
+  loadedImages[filename] = img;
   imagesMeta.push(meta);
   
-  // Store in localStorage fallback
-  localDrawingsData[filename] = {
-    dataURL: dataURL,
-    meta: meta,
-    timestamp: Date.now()
-  };
-  saveLocalDrawings();
-  
+  // Also save to localStorage
+  try {
+    let saved = localStorage.getItem('geoDrawings');
+    let data = saved ? JSON.parse(saved) : { meta: [], images: [] };
+    
+    data.meta.push(meta);
+    data.images.push({
+      meta: meta,
+      dataURL: dataURL
+    });
+    
+    localStorage.setItem('geoDrawings', JSON.stringify(data));
+    console.log("💾 Saved to localStorage");
+  } catch (e) {
+    console.log("⚠️ Could not save to localStorage:", e.message);
+  }
+
   // send png to server for saving
   socket.emit("savePNG", { image: dataURL, meta: meta });
 
   // clear current stroke
   currentStroke = [];
+  
+  console.log("✅ Drawing saved locally, waiting for server...");
 }
 
 function windowResized(){
@@ -847,33 +810,5 @@ class MyPoint{
     let dia = this.size + sin(frameCount*0.1);
     circle(0,0,dia);
     pop();
-  }
-}
-
-// Local storage helper functions
-function loadLocalDrawingsFallback() {
-  try {
-    let saved = localStorage.getItem('geoDrawingsFallback');
-    if (saved) {
-      localDrawingsData = JSON.parse(saved);
-      console.log("📂 Loaded", Object.keys(localDrawingsData).length, "drawings from localStorage fallback");
-      
-      // Add to imagesMeta
-      Object.values(localDrawingsData).forEach(item => {
-        if (!imagesMeta.find(m => m.file === item.meta.file)) {
-          imagesMeta.push(item.meta);
-        }
-      });
-    }
-  } catch (e) {
-    console.log("⚠️ Could not load localStorage drawings:", e.message);
-  }
-}
-
-function saveLocalDrawings() {
-  try {
-    localStorage.setItem('geoDrawingsFallback', JSON.stringify(localDrawingsData));
-  } catch (e) {
-    console.log("⚠️ Could not save to localStorage:", e.message);
   }
 }
