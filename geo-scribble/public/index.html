@@ -6,9 +6,6 @@
   <link rel="manifest" href="manifest.json" />
   <title>Geo Scribble</title>
   <link rel="stylesheet" type="text/css" href="style.css">
-  <script src="lib/p5.js"></script>
-  <script src="lib/mappa.js" type="text/javascript"></script>
-  <script src="socket.io/socket.io.js"></script>
 </head>
 <body>
 <div id="controls">
@@ -18,34 +15,46 @@
   <div id="p5-canvas-container"></div>
 </div>
 
-<script src="requestgps.js"></script> 
+<!-- LOAD IN EXACT ORDER: p5 → mappa → socket.io → GPS → sketch -->
+<script src="lib/p5.js"></script>
+<script src="lib/mappa.js"></script>
+<script src="socket.io/socket.io.js"></script>
+
+<!-- CRITICAL: GPS MUST LOAD BEFORE SKETCH -->
+<script>
+console.log("🔄 1. Loading GPS script...");
+</script>
+<script src="requestgps.js"></script>
+
+<script>
+console.log("🔄 2. GPS script loaded, now loading sketch...");
+</script>
 <script src="sketch.js"></script>
 
 <script>
-// Safe button handler
-document.addEventListener('DOMContentLoaded', function() {
-    const btn = document.getElementById('requestOrientationButton');
-    if (btn) {
-        btn.onclick = function() {
-            if (typeof requestGPS === 'function') {
-                console.log("Calling requestGPS...");
-                requestGPS();
-            } else {
-                console.log("GPS script still loading...");
-                btn.textContent = "Loading GPS...";
-                // Try again in 1 second
-                setTimeout(function() {
-                    if (typeof requestGPS === 'function') {
-                        requestGPS();
-                    } else {
-                        btn.textContent = "GPS Error - Refresh";
-                    }
-                }, 1000);
-            }
-        };
-    }
-});
-</script>
+// SIMPLE GPS handler - no timing issues
+console.log("🔄 3. All scripts loaded, setting up button...");
 
+const btn = document.getElementById('requestOrientationButton');
+if (btn) {
+    btn.onclick = function() {
+        console.log("📍 GPS button clicked");
+        if (window.requestGPS) {
+            console.log("✅ Calling requestGPS...");
+            requestGPS();
+            btn.style.display = 'none';
+        } else {
+            console.error("❌ requestGPS not found!");
+            console.log("Available: requestGPS =", typeof requestGPS);
+        }
+    };
+    
+    // Auto-click after 1 second
+    setTimeout(() => {
+        console.log("⏱️ Auto-clicking GPS button...");
+        btn.click();
+    }, 1000);
+}
+</script>
 </body>
 </html>

@@ -7,6 +7,11 @@ let mapInit = false; // we only do map stuff once mapInit is true (see in draw)
 let me; // point object showing our own location
 
 let socket = io();
+if (location.hostname.toLowerCase().startsWith('browsercircus') || location.hostname.toLowerCase().startsWith('www')) {
+  socket = io({ path: "/tq/port-4260/socket.io" });
+} else {
+  socket = io();
+}
 
 // options for map
 // we only actually initialize the map once we get data where we are (in draw)
