@@ -5,18 +5,67 @@ const path = require("path");
 const app = express();
 const portHTTPS = 4260;
 
+// DEBUG: Show current directory structure
+console.log("=== Server Startup Debug ===");
+console.log("Current directory (__dirname):", __dirname);
+console.log("Server file location:", __filename);
 
 // ensure drawings folder exists for saving pngs
 const DRAWINGS_DIR = path.join(__dirname, "public", "drawings");
-if (!fs.existsSync(DRAWINGS_DIR)) fs.mkdirSync(DRAWINGS_DIR, { recursive: true });
+console.log("Drawings directory path:", DRAWINGS_DIR);
+console.log("Drawings directory exists?", fs.existsSync(DRAWINGS_DIR));
+
+// Check what's in the current directory
+try {
+  console.log("Files in current directory:");
+  fs.readdirSync(__dirname).forEach(file => {
+    console.log("  -", file);
+  });
+  
+  console.log("Files in public directory (if exists):");
+  if (fs.existsSync(path.join(__dirname, "public"))) {
+    fs.readdirSync(path.join(__dirname, "public")).forEach(file => {
+      console.log("  -", file);
+    });
+  }
+} catch (err) {
+  console.log("Error reading directory:", err.message);
+}
+
+if (!fs.existsSync(DRAWINGS_DIR)) {
+  console.log("Creating drawings directory...");
+  fs.mkdirSync(DRAWINGS_DIR, { recursive: true });
+  console.log("Drawings directory created");
+}
 
 // serve public folder
 app.use(express.static('public'));
-// In server.js, add this line:
+// Serve drawings folder
 app.use('/drawings', express.static(DRAWINGS_DIR));
+
+// Add a test endpoint to debug
+app.get('/debug', (req, res) => {
+  const drawingsExist = fs.existsSync(DRAWINGS_DIR);
+  const drawingsFiles = drawingsExist ? fs.readdirSync(DRAWINGS_DIR) : [];
+  
+  res.json({
+    success: true,
+    serverDir: __dirname,
+    drawingsDir: DRAWINGS_DIR,
+    drawingsExists: drawingsExist,
+    drawingsCount: drawingsFiles.length,
+    sampleFiles: drawingsFiles.slice(0, 5),
+    canAccessDrawing: drawingsFiles.length > 0 ? 
+      `/drawings/${drawingsFiles[0]}` : 'No files'
+  });
+});
+
 // draw-data.json path
 const DATA_JSON = path.join(__dirname, "draw-data.json");
+console.log("Data JSON path:", DATA_JSON);
 let drawData = [];
+
+// ... rest of your code remains the same ...
 
 // load existing metadata if present
 try {
