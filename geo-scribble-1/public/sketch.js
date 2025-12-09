@@ -68,14 +68,6 @@ if (location.hostname.toLowerCase().startsWith('browsercircus') || location.host
   socket = io();
 }
 
-function getDrawingUrl(filename) {
-  if (window.location.hostname.includes('browsercircus')) {
-    return 'https://browsercircus.live:4260/drawings/' + filename;
-  } else {
-    return '/drawings/' + filename;
-  }
-}
-
 let mappa_options = {
   lat: 0,
   lng: 0,
@@ -120,7 +112,7 @@ function setup() {
     loadedImages = {};
     //load each image
     imagesMeta.forEach(m => {
-      if (!loadedImages[m.file]) loadedImages[m.file] = loadImage(getDrawingUrl(m.file));
+      if (!loadedImages[m.file]) loadedImages[m.file] = loadImage("/drawings/" + m.file);
     });
     // clear current stroke
     currentStroke = [];
@@ -133,7 +125,7 @@ function setup() {
   socket.on("newImage", (meta) => {
     // add to image list and load it
     imagesMeta.push(meta);
-    if (!loadedImages[meta.file]) loadedImages[meta.file] = loadImage(getDrawingUrl(m.file));
+    if (!loadedImages[meta.file]) loadedImages[meta.file] = loadImage("/drawings/" + meta.file);
   });
 
   // when image is deleted -> remove from everhthing
