@@ -16,7 +16,7 @@ let drawings = [];
 // current drawing color
 let myColor;
 // store map boundaries when drawing starts
-let frozenBounds = null; 
+let frozenBounds = true; 
 
 // draw-mode lock -> check if boundaries have been set yet
 let boundsInitialized = false; 
