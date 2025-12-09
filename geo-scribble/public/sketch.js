@@ -63,14 +63,14 @@ const myUserId = getOrCreateUserId();
 // connection for real-time updates
 let socket;
 if (location.hostname.toLowerCase().startsWith('browsercircus') || location.hostname.toLowerCase().startsWith('www')) {
-  socket = io({ path: "/tq/port-4268/socket.io" });
+  socket = io({ path: "/tq/port-4260/socket.io" });
 } else {
   socket = io();
 }
 
 function getDrawingUrl(filename) {
   if (window.location.hostname.includes('browsercircus')) {
-    return 'https://browsercircus.live:4268/drawings/' + filename;
+    return 'https://browsercircus.live:4260/drawings/' + filename;
   } else {
     return '/drawings/' + filename;
   }
