@@ -177,7 +177,7 @@ function setup() {
       if(drawMode){
         setTimeout(() => {
           freezeMap();
-        }, 100);
+        }, 500);
       }
     }
   });
