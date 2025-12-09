@@ -576,6 +576,7 @@ function touchMoved() {
   ) return false;
 
   if (mapInit && drawMode && frozenBounds && !showStartScreen) {
+    console.log("drawing")
     // get gps coordinates from mouse positions
     let pos1 = myMap.pixelToLatLng(pmouseX, pmouseY);
     let pos2 = myMap.pixelToLatLng(mouseX, mouseY);
@@ -598,6 +599,8 @@ function touchMoved() {
     };
     
     socket.emit("newDrawing", lineSeg);
+  }else{
+    console.log("not drawing")
   }
   return false;
 }
