@@ -16,7 +16,7 @@ let drawings = [];
 // current drawing color
 let myColor;
 // store map boundaries when drawing starts
-let frozenBounds = true; 
+let frozenBounds = null; 
 
 // draw-mode lock -> check if boundaries have been set yet
 let boundsInitialized = false; 
@@ -349,7 +349,7 @@ function draw() {
           boundsInitialized = true;
         }
       }
-    }, 100);
+    }, 500);
   }
 
   // if map is ready
