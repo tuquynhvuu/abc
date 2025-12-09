@@ -121,7 +121,7 @@ function setup() {
     loadedImages = {};
     //load each image
     imagesMeta.forEach(m => {
-      if (!loadedImages[m.file]) loadedImages[m.file] = loadImage("drawings/"+m.file));
+      if (!loadedImages[m.file]) loadedImages[m.file] = loadImage("drawings/"+m.file);
     });
     // clear current stroke
     currentStroke = [];
