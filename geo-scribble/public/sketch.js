@@ -600,7 +600,7 @@ function touchMoved() {
     
     socket.emit("newDrawing", lineSeg);
   }else{
-    console.log("not drawing")
+    console.log("not drawing", mapInit, drawMode, frozenBounds, showStartScreen)
   }
   return false;
 }
