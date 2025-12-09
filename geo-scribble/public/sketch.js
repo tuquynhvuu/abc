@@ -63,9 +63,29 @@ const myUserId = getOrCreateUserId();
 // connection for real-time updates
 let socket;
 if (location.hostname.toLowerCase().startsWith('browsercircus') || location.hostname.toLowerCase().startsWith('www')) {
-  socket = io({ path: "/tq/port-4260/socket.io" });
+  socket = io({ 
+    path: "/tq/port-4260/socket.io",
+    port: SERVER_PORT,
+    secure: true
+  });
 } else {
   socket = io();
+}
+
+// Add this after your socket connection setup
+const SERVER_PORT = 4260;
+const SERVER_HOST = window.location.hostname;
+const IS_PRODUCTION = SERVER_HOST !== 'localhost' && SERVER_HOST !== '127.0.0.1';
+
+// Helper function to get the correct image URL
+function getImageUrl(filename) {
+  if (IS_PRODUCTION) {
+    // For production: use full URL with port 4260
+    return `https://browsercircus.live:${SERVER_PORT}/drawings/${filename}`;
+  } else {
+    // For local development: use relative path
+    return `/drawings/${filename}`;
+  }
 }
 
 let mappa_options = {
@@ -105,28 +125,46 @@ function setup() {
   me = new MyPoint();
 
   // load all images from server 
-  function reloadImages(metaList) {
-    // store image info
-    imagesMeta = metaList || [];
-    // clear old images
-    loadedImages = {};
-    //load each image
-    imagesMeta.forEach(m => {
-      if (!loadedImages[m.file]) loadedImages[m.file] = loadImage("/drawings/" + m.file);
-    });
-    // clear current stroke
-    currentStroke = [];
-  }
+// load all images from server 
+function reloadImages(metaList) {
+  // store image info
+  imagesMeta = metaList || [];
+  // clear old images
+  loadedImages = {};
+  //load each image
+  imagesMeta.forEach(m => {
+    if (!loadedImages[m.file]) {
+      const imageUrl = getImageUrl(m.file);
+      console.log("Loading image:", imageUrl);
+      loadedImages[m.file] = loadImage(
+        imageUrl,
+        () => console.log("Successfully loaded:", m.file),
+        (err) => console.error("Failed to load:", m.file, err)
+      );
+    }
+  });
+  // clear current stroke
+  currentStroke = [];
+}
+
 
   // when server sends all saved images
   socket.on("allImages", reloadImages);
 
-  // when new image is saved by anyone
-  socket.on("newImage", (meta) => {
-    // add to image list and load it
-    imagesMeta.push(meta);
-    if (!loadedImages[meta.file]) loadedImages[meta.file] = loadImage("/drawings/" + meta.file);
-  });
+// when new image is saved by anyone
+socket.on("newImage", (meta) => {
+  // add to image list and load it
+  imagesMeta.push(meta);
+  if (!loadedImages[meta.file]) {
+    const imageUrl = getImageUrl(meta.file);
+    console.log("Loading new image:", imageUrl);
+    loadedImages[meta.file] = loadImage(
+      imageUrl,
+      () => console.log("Successfully loaded new image:", meta.file),
+      (err) => console.error("Failed to load new image:", meta.file, err)
+    );
+  }
+});
 
   // when image is deleted -> remove from everhthing
   socket.on("deleteImage", (filename) => {
