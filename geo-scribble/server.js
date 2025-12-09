@@ -3,7 +3,7 @@ const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const app = express();
-const portHTTPS = 4260;
+const portHTTPS = 4268;
 
 // DEBUG: Show current directory structure
 console.log("=== Server Startup Debug ===");
