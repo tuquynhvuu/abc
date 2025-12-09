@@ -132,9 +132,10 @@ function setup() {
 
   // when new image is saved by anyone
   socket.on("newImage", (meta) => {
+
     // add to image list and load it
     imagesMeta.push(meta);
-    if (!loadedImages[meta.file]) loadedImages[meta.file] = loadImage("drawings/"+m.file);
+    if (!loadedImages[meta.file]) loadedImages[meta.file] = loadImage("drawings/"+meta.file);
   });
 
   // when image is deleted -> remove from everhthing
