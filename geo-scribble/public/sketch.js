@@ -68,13 +68,13 @@ if (location.hostname.toLowerCase().startsWith('browsercircus') || location.host
   socket = io();
 }
 
-// function getDrawingUrl(filename) {
-//   if (window.location.hostname.includes('browsercircus')) {
-//     return 'https://browsercircus.live:4260/drawings/' + filename;
-//   } else {
-//     return '/drawings/' + filename;
-//   }
-// }
+function getDrawingUrl(filename) {
+  if (window.location.hostname.includes('browsercircus')) {
+    return 'https://browsercircus.live:4260/drawings/' + filename;
+  } else {
+    return '/drawings/' + filename;
+  }
+}
 
 let mappa_options = {
   lat: 0,
