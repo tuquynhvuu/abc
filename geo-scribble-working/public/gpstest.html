@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GPS Direct Test</title>
+</head>
+<body>
+    <h1>GPS Test - Direct</h1>
+    <button onclick="testGPS()">Test GPS Now</button>
+    <div id="result"></div>
+    
+    <script>
+    function testGPS() {
+        const result = document.getElementById('result');
+        result.innerHTML = "Testing...";
+        
+        if (!navigator.geolocation) {
+            result.innerHTML = "❌ Geolocation not supported";
+            return;
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                result.innerHTML = `✅ GPS WORKED!<br>Lat: ${lat}<br>Lon: ${lon}`;
+                console.log("GPS success:", {lat, lon});
+            },
+            function(err) {
+                let msg = "❌ GPS failed: ";
+                switch(err.code) {
+                    case err.PERMISSION_DENIED:
+                        msg += "Permission denied"; break;
+                    case err.POSITION_UNAVAILABLE:
+                        msg += "Position unavailable"; break;
+                    case err.TIMEOUT:
+                        msg += "Timeout"; break;
+                    default:
+                        msg += err.message;
+                }
+                result.innerHTML = msg;
+                console.log("GPS error:", err);
+            },
+            { enableHighAccuracy: false, timeout: 10000 }
+        );
+    }
+    
+    // Auto-test on load
+    setTimeout(testGPS, 1000);
+    </script>
+</body>
+</html>

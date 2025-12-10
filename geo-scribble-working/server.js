@@ -45,6 +45,50 @@ app.use(express.static(PUBLIC_DIR));
 // FIXED: Serve drawings folder correctly
 app.use('/drawings', express.static(DRAWINGS_DIR));
 
+// Add a test endpoint to debug
+app.get('/debug', (req, res) => {
+  const drawingsExist = fs.existsSync(DRAWINGS_DIR);
+  const drawingsFiles = drawingsExist ? fs.readdirSync(DRAWINGS_DIR) : [];
+  
+  res.json({
+    success: true,
+    serverDir: __dirname,
+    publicDir: PUBLIC_DIR,
+    drawingsDir: DRAWINGS_DIR,
+    drawingsExists: drawingsExist,
+    drawingsCount: drawingsFiles.length,
+    sampleFiles: drawingsFiles.slice(0, 5),
+    canAccessDrawing: drawingsFiles.length > 0 ? 
+      `/drawings/${drawingsFiles[0]}` : 'No files',
+    serverTime: new Date().toISOString()
+  });
+});
+
+// Test if a specific file can be accessed
+app.get('/test-file/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filepath = path.join(DRAWINGS_DIR, filename);
+  
+  if (!fs.existsSync(filepath)) {
+    return res.status(404).json({
+      success: false,
+      message: `File not found: ${filename}`,
+      filepath: filepath,
+      exists: false
+    });
+  }
+  
+  const stats = fs.statSync(filepath);
+  res.json({
+    success: true,
+    filename: filename,
+    filepath: filepath,
+    exists: true,
+    size: stats.size,
+    created: stats.birthtime,
+    url: `/drawings/${filename}`
+  });
+});
 
 // draw-data.json path
 const DATA_JSON = path.join(__dirname, "draw-data.json");
