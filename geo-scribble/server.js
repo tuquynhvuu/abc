@@ -18,27 +18,27 @@ const DRAWINGS_DIR = path.join(PUBLIC_DIR, "drawings");
 // console.log("Drawings directory exists?", fs.existsSync(DRAWINGS_DIR));
 
 // Check what's in the current directory
-// try {
-//   console.log("Files in current directory:");
-//   fs.readdirSync(__dirname).forEach(file => {
-//     console.log("  -", file);
-//   });
+try {
+  console.log("Files in current directory:");
+  fs.readdirSync(__dirname).forEach(file => {
+    console.log("  -", file);
+  });
   
-//   console.log("Files in public directory (if exists):");
-//   if (fs.existsSync(PUBLIC_DIR)) {
-//     fs.readdirSync(PUBLIC_DIR).forEach(file => {
-//       console.log("  -", file);
-//     });
-//   }
-// } catch (err) {
-//   console.log("Error reading directory:", err.message);
-// }
+  console.log("Files in public directory (if exists):");
+  if (fs.existsSync(PUBLIC_DIR)) {
+    fs.readdirSync(PUBLIC_DIR).forEach(file => {
+      console.log("  -", file);
+    });
+  }
+} catch (err) {
+  console.log("Error reading directory:", err.message);
+}
 
-// if (!fs.existsSync(DRAWINGS_DIR)) {
-//   console.log("Creating drawings directory...");
-//   fs.mkdirSync(DRAWINGS_DIR, { recursive: true });
-//   console.log("Drawings directory created");
-// }
+if (!fs.existsSync(DRAWINGS_DIR)) {
+  console.log("Creating drawings directory...");
+  fs.mkdirSync(DRAWINGS_DIR, { recursive: true });
+  console.log("Drawings directory created");
+}
 
 // FIXED: Serve public folder with absolute path
 app.use(express.static(PUBLIC_DIR));
