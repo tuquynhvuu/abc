@@ -5,62 +5,18 @@ const path = require("path");
 const app = express();
 const portHTTPS = 4260;
 
-// DEBUG: Show current directory structure
-console.log("=== Server Startup Debug ===");
-console.log("Current directory (__dirname):", __dirname);
-console.log("Server file location:", __filename);
-
-// CORRECTED: Get absolute paths
 const PUBLIC_DIR = path.join(__dirname, "public");
 const DRAWINGS_DIR = path.join(PUBLIC_DIR, "drawings");
-console.log("Public directory path:", PUBLIC_DIR);
-console.log("Drawings directory path:", DRAWINGS_DIR);
-console.log("Drawings directory exists?", fs.existsSync(DRAWINGS_DIR));
 
-// Check what's in the current directory
-try {
-  console.log("Files in current directory:");
-  fs.readdirSync(__dirname).forEach(file => {
-    console.log("  -", file);
-  });
-  
-  console.log("Files in public directory (if exists):");
-  if (fs.existsSync(PUBLIC_DIR)) {
-    fs.readdirSync(PUBLIC_DIR).forEach(file => {
-      console.log("  -", file);
-    });
-  }
-} catch (err) {
-  console.log("Error reading directory:", err.message);
-}
 
-if (!fs.existsSync(DRAWINGS_DIR)) {
-  console.log("Creating drawings directory...");
-  fs.mkdirSync(DRAWINGS_DIR, { recursive: true });
-  console.log("Drawings directory created");
-}
 
-// FIXED: Serve public folder with absolute path
 app.use(express.static(PUBLIC_DIR));
-// FIXED: Serve drawings folder correctly
 app.use('/drawings', express.static(DRAWINGS_DIR));
 
 
-// draw-data.json path
 const DATA_JSON = path.join(__dirname, "draw-data.json");
-console.log("Data JSON path:", DATA_JSON);
 let drawData = [];
 
-// load existing metadata if present
-try {
-  if (fs.existsSync(DATA_JSON)) {
-    drawData = JSON.parse(fs.readFileSync(DATA_JSON, "utf8"));
-    console.log("Loaded draw-data.json entries:", drawData.length);
-  }
-} catch (err) {
-  console.warn("Could not read draw-data.json, starting empty");
-  drawData = [];
-}
 
 const options = {
     key: fs.readFileSync("localhost-key.pem"),
@@ -210,16 +166,4 @@ io.on('connection', (socket) => {
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
     });
-});
-
-// FIXED: Bind to all network interfaces
-HTTPSserver.listen(portHTTPS, '0.0.0.0', () => {
-    console.log(`HTTPS Server started at port ${portHTTPS}`);
-    console.log(`Accessible at:`);
-    console.log(`- https://localhost:${portHTTPS}`);
-    console.log(`- https://127.0.0.1:${portHTTPS}`);
-    console.log(`- https://browsercircus.live:${portHTTPS}`);
-    console.log(`Public directory: ${PUBLIC_DIR}`);
-    console.log(`Drawings directory: ${DRAWINGS_DIR}`);
-    console.log(`Drawings count: ${drawData.length}`);
 });
