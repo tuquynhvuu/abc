@@ -20,13 +20,13 @@ const DRAWINGS_DIR = path.join(PUBLIC_DIR, "drawings");
 try {
   console.log("Files in current directory:");
   fs.readdirSync(__dirname).forEach(file => {
-    console.log("  -", file);
+    // console.log("  -", file);
   });
   
   console.log("Files in public directory (if exists):");
   if (fs.existsSync(PUBLIC_DIR)) {
     fs.readdirSync(PUBLIC_DIR).forEach(file => {
-      console.log("  -", file);
+      // console.log("  -", file);
     });
   }
 } catch (err) {
@@ -257,12 +257,12 @@ io.on('connection', (socket) => {
 
 // FIXED: Bind to all network interfaces
 HTTPSserver.listen(portHTTPS, '0.0.0.0', () => {
-    console.log(`HTTPS Server started at port ${portHTTPS}`);
-    console.log(`Accessible at:`);
-    console.log(`- https://localhost:${portHTTPS}`);
-    console.log(`- https://127.0.0.1:${portHTTPS}`);
-    console.log(`- https://browsercircus.live:${portHTTPS}`);
-    console.log(`Public directory: ${PUBLIC_DIR}`);
-    console.log(`Drawings directory: ${DRAWINGS_DIR}`);
-    console.log(`Drawings count: ${drawData.length}`);
+    // console.log(`HTTPS Server started at port ${portHTTPS}`);
+    // console.log(`Accessible at:`);
+    // console.log(`- https://localhost:${portHTTPS}`);
+    // console.log(`- https://127.0.0.1:${portHTTPS}`);
+    // console.log(`- https://browsercircus.live:${portHTTPS}`);
+    // console.log(`Public directory: ${PUBLIC_DIR}`);
+    // console.log(`Drawings directory: ${DRAWINGS_DIR}`);
+    // console.log(`Drawings count: ${drawData.length}`);
 });
