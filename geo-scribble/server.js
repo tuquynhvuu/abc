@@ -5,19 +5,18 @@ const path = require("path");
 const app = express();
 const portHTTPS = 4260;
 
-// DEBUG: Show current directory structure
-console.log("=== Server Startup Debug ===");
-console.log("Current directory (__dirname):", __dirname);
-console.log("Server file location:", __filename);
+// debugging: how current directory structure
+// console.log("=== Server Startup Debug ===");
+// console.log("Current directory (__dirname):", __dirname);
+// console.log("Server file location:", __filename);
 
-// CORRECTED: Get absolute paths
 const PUBLIC_DIR = path.join(__dirname, "public");
 const DRAWINGS_DIR = path.join(PUBLIC_DIR, "drawings");
-console.log("Public directory path:", PUBLIC_DIR);
-console.log("Drawings directory path:", DRAWINGS_DIR);
-console.log("Drawings directory exists?", fs.existsSync(DRAWINGS_DIR));
+// console.log("Public directory path:", PUBLIC_DIR);
+// console.log("Drawings directory path:", DRAWINGS_DIR);
+// console.log("Drawings directory exists?", fs.existsSync(DRAWINGS_DIR));
 
-// Check what's in the current directory
+// check what's in the current directory
 try {
   console.log("Files in current directory:");
   fs.readdirSync(__dirname).forEach(file => {
