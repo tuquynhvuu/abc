@@ -5,16 +5,11 @@ const path = require("path");
 const app = express();
 const portHTTPS = 4260;
 
-// debugging: how current directory structure
-// console.log("=== Server Startup Debug ===");
-// console.log("Current directory (__dirname):", __dirname);
-// console.log("Server file location:", __filename);
+
 
 const PUBLIC_DIR = path.join(__dirname, "public");
 const DRAWINGS_DIR = path.join(PUBLIC_DIR, "drawings");
-// console.log("Public directory path:", PUBLIC_DIR);
-// console.log("Drawings directory path:", DRAWINGS_DIR);
-// console.log("Drawings directory exists?", fs.existsSync(DRAWINGS_DIR));
+
 
 // check what's in the current directory
 try {
