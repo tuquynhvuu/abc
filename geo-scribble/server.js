@@ -257,13 +257,13 @@ io.on('connection', (socket) => {
 });
 
 // FIXED: Bind to all network interfaces
-// HTTPSserver.listen(portHTTPS, '0.0.0.0', () => {
-//     console.log(`HTTPS Server started at port ${portHTTPS}`);
-//     console.log(`Accessible at:`);
-//     console.log(`- https://localhost:${portHTTPS}`);
-//     console.log(`- https://127.0.0.1:${portHTTPS}`);
-//     console.log(`- https://browsercircus.live:${portHTTPS}`);
-//     console.log(`Public directory: ${PUBLIC_DIR}`);
-//     console.log(`Drawings directory: ${DRAWINGS_DIR}`);
-//     console.log(`Drawings count: ${drawData.length}`);
-// });
+HTTPSserver.listen(portHTTPS, '0.0.0.0', () => {
+    console.log(`HTTPS Server started at port ${portHTTPS}`);
+    console.log(`Accessible at:`);
+    console.log(`- https://localhost:${portHTTPS}`);
+    console.log(`- https://127.0.0.1:${portHTTPS}`);
+    console.log(`- https://browsercircus.live:${portHTTPS}`);
+    console.log(`Public directory: ${PUBLIC_DIR}`);
+    console.log(`Drawings directory: ${DRAWINGS_DIR}`);
+    console.log(`Drawings count: ${drawData.length}`);
+});
